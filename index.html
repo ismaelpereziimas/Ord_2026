@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen Ordinario - Microcontroladores</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code:wght@400;500&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .code-font { font-family: 'Fira Code', monospace; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        .toast { animation: slideIn 0.3s ease-out forwards; }
+        .toast.hiding { animation: fadeOut 0.5s ease-out forwards; }
+        @media print {
+            body { background: white; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .container { box-shadow: none; max-width: 100%; padding: 0; }
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div id="app-card" class="bg-white rounded-xl shadow-lg w-full max-w-5xl p-6 md:p-10 transition-all duration-300">
+            
+            <div class="text-center mb-8 border-b pb-4">
+                <h1 class="text-2xl md:text-3xl font-bold text-indigo-900">Evaluación Ordinaria: Microcontroladores</h1>
+                <p class="text-gray-500 mt-2">Integración de Arquitectura (PIC18F4550 / Ensamblador) y Firmware (Lenguaje C)</p>
+                <div id="examen-meta" class="hidden mt-4 flex flex-wrap justify-center gap-4 md:gap-6 text-sm font-semibold text-gray-600 bg-gray-50 p-3 rounded-lg">
+                    <span id="display-serie"><i class="fas fa-file-alt text-indigo-500"></i> Serie: -</span>
+                    <span id="display-time"><i class="fas fa-clock text-green-500"></i> Tiempo: 00:00</span>
+                    <span id="display-warnings" class="text-red-500"><i class="fas fa-exclamation-triangle"></i> Infracciones: 0</span>
+                </div>
+            </div>
+
+            <div id="vista-registro" class="block">
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r">
+                    <div class="flex">
+                        <div class="flex-shrink-0"><i class="fas fa-shield-alt text-yellow-400"></i></div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                <strong>Reglas del Examen Ordinario:</strong><br>
+                                1. La prueba evalúa competencias en lenguaje Ensamblador y C Embebido.<br>
+                                2. El sistema registrará métricas de integridad (cambios de pestaña/tiempo).<br>
+                                3. Consta de 10 casos de estudio progresivos (40 puntos en total).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4 max-w-md mx-auto">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+                        <input type="text" id="alumno-nombre" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Apellidos y Nombres">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Matrícula</label>
+                        <input type="text" id="alumno-matricula" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Ej. 18020010">
+                    </div>
+                    <button onclick="app.iniciar()" class="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-3 px-4 rounded-lg transition-colors mt-6 shadow-md">
+                        <i class="fas fa-power-off mr-2"></i> Iniciar Examen Ordinario
+                    </button>
+                </div>
+            </div>
+
+            <div id="vista-examen" class="hidden">
+                <div id="contenedor-preguntas" class="space-y-8"></div>
+                
+                <div class="mt-10 pt-6 border-t flex justify-end">
+                    <button onclick="app.entregar()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-lg shadow-md">
+                        <i class="fas fa-upload mr-2"></i> Entregar Examen
+                    </button>
+                </div>
+            </div>
+
+            <div id="vista-reporte" class="hidden">
+                <div id="reporte-contenido"></div>
+                <div class="mt-8 flex justify-center gap-4 no-print">
+                    <button onclick="window.print()" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow">
+                        <i class="fas fa-file-pdf mr-2"></i> Guardar Acta en PDF
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+<script>
+const app = (function() {
+    // URL DE SU BACKEND EN GOOGLE SHEETS
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQFilJTBT7_qBDXlThxC89VYeOY0Gt8hCqIoGkqBMPHog_GIra4cYJ2gYJZtPO1JCY/exec';
+
+    const state = {
+        alumno: { nombre: '', matricula: '', serie: '' },
+        seguridad: { salidas: 0, tiempoInicio: null, intervaloTimer: null, minutos: 0, segundos: 0 },
+        preguntasActivas: []
+    };
+
+    // BANCO DE PREGUNTAS: 10 Reactivos x 4 pts = 40 Puntos
+    const bancoMaestro = [
+        // BLOQUE I: ARQUITECTURA Y ENSAMBLADOR (PIC18F4550)
+        {
+            id: 'q1', nivel: 1, tipo: 'radio', pts: 4,
+            contexto: 'Caso 1: Configuración de Hardware (Manejo de Puertos). Se requiere conectar los LEDs rojo, amarillo y verde de un semáforo al Puerto D del PIC18F4550.',
+            texto: 'En ensamblador, ¿qué instrucción y valor hexadecimal debe cargarse en el registro de control para asegurar que el Puerto D funcione estrictamente como SALIDA?',
+            opciones: [
+                'Cargar 0x00 en el registro TRISD.',
+                'Cargar 0xFF en el registro TRISD.',
+                'Cargar 0x00 en el registro PORTD.',
+                'Cargar 0xFF en el registro LATD.'
+            ],
+            correcta: 0,
+            retro: 'En los microcontroladores PIC, el registro TRIS (Tri-State) define la dirección. Un "0" lógico configura el pin como salida (Output).'
+        },
+        {
+            id: 'q2', nivel: 2, tipo: 'radio', pts: 4,
+            contexto: 'Caso 2: El Sargento Moheno (Interrupciones). El botón de multas activa la interrupción externa INT0, saltando el microcontrolador a la subrutina de alta prioridad.',
+            texto: '¿Qué instrucción crítica en ensamblador DEBE ejecutarse justo antes de la instrucción RETFIE para evitar que el microcontrolador caiga en un bucle infinito de interrupciones?',
+            opciones: [
+                'BSF INTCON, GIE',
+                'BCF INTCON, INT0IF',
+                'BTG PORTD, 0',
+                'CLRF WREG'
+            ],
+            correcta: 1,
+            retro: 'Es imperativo limpiar por software la bandera de interrupción (Bit Clear File a INT0IF). Si no se limpia, al retornar (RETFIE) el procesador creerá que la interrupción sigue activa.'
+        },
+        {
+            id: 'q3', nivel: 2, tipo: 'radio', pts: 4,
+            contexto: 'Caso 3: Control de Tiempos (Timer 0). Durante la Práctica 2, se creó una subrutina de retardo (Delay) por Polling. El código ejecuta la instrucción: BTFSS INTCON, TMR0IF.',
+            texto: '¿Cuál es el objetivo arquitectónico de esta línea de código dentro de la subrutina?',
+            opciones: [
+                'Verificar si el temporizador ya se desbordó (llegó a su límite), saltando la siguiente instrucción si es así para salir del bucle.',
+                'Apagar inmediatamente el módulo Timer 0 para ahorrar energía.',
+                'Configurar el Timer 0 para que opere en modo de 16 bits.',
+                'Activar el pre-escalador (Prescaler) del temporizador a 1:256.'
+            ],
+            correcta: 0,
+            retro: 'La instrucción BTFSS (Bit Test File, Skip if Set) evalúa si la bandera TMR0IF se ha puesto en 1 (indicando desbordamiento), permitiendo salir del bucle de espera.'
+        },
+        {
+            id: 'q4', nivel: 3, tipo: 'codigo', pts: 4,
+            contexto: 'Caso 4: Vectores de Memoria. En la arquitectura PIC18F, el procesador siempre inicia en el vector de Reset (0x0000).',
+            texto: 'Complete la directiva de ensamblador que indica al compilador dónde ubicar el código de la rutina de interrupción de ALTA PRIORIDAD.',
+            codigoBase: "________ 0x0008\nbra HighInt",
+            respuestaRegex: /org/i,
+            retro: 'La directiva ORG (Origin) especifica la dirección de memoria de programa absoluta. 0x0008 es el vector asignado por hardware para interrupciones de alta prioridad.'
+        },
+        {
+            id: 'q5', nivel: 3, tipo: 'codigo', pts: 4,
+            contexto: 'Caso 5: Manipulación de Banderas. El Timer 0 ha terminado su cuenta de 5 segundos de gracia para la bocina.',
+            texto: 'Escriba la instrucción mnemotécnica en ensamblador (3 letras) utilizada para LIMPIAR (poner a 0 lógico) la bandera TMR0IF en el registro INTCON.',
+            codigoBase: "________ INTCON, TMR0IF",
+            respuestaRegex: /bcf/i,
+            retro: 'BCF (Bit Clear File) es la instrucción en ensamblador utilizada para poner un bit específico en cero.'
+        },
+
+        // BLOQUE II: FIRMWARE Y LENGUAJE C (ABSTRACCIÓN)
+        {
+            id: 'q6', nivel: 1, tipo: 'radio', pts: 4,
+            contexto: 'Caso 6: Migración de Timer a C. Al programar en Lenguaje C, se requiere una variable que almacene la cuenta máxima soportada por el Timer 0 en modo de 16 bits (65,535).',
+            texto: '¿Qué tipo de dato de la librería <stdint.h> garantiza el menor uso de RAM sin provocar desbordamiento de variable?',
+            opciones: [
+                'uint16_t',
+                'int16_t',
+                'uint8_t',
+                'int'
+            ],
+            correcta: 0,
+            retro: 'Para valores de 0 a 65,535 se requiere un entero sin signo de 16 bits (uint16_t). Usar int16_t (con signo) fallaría al llegar a 32,767.'
+        },
+        {
+            id: 'q7', nivel: 2, tipo: 'radio', pts: 4,
+            contexto: 'Caso 7: Transición de Paradigmas lógicos. En ensamblador se utilizó la instrucción BTG PORTD, 0 para parpadear un LED (Toggle).',
+            texto: 'Al migrar este código a Lenguaje C, ¿qué operador a nivel de bits (Bitwise) logra el mismo efecto de inversión en un registro?',
+            opciones: [
+                '^ (XOR bit a bit)',
+                '| (OR bit a bit)',
+                '& (AND bit a bit)',
+                '~ (Complemento a 1 de todo el registro)'
+            ],
+            correcta: 0,
+            retro: 'El operador XOR (^) invierte únicamente el bit en el que la máscara tenga un 1 lógico, replicando exactamente el comportamiento de la instrucción BTG (Bit Toggle).'
+        },
+        {
+            id: 'q8', nivel: 2, tipo: 'radio', pts: 4,
+            contexto: 'Caso 8: Arquitectura Superloop. A diferencia del software para PC que utiliza "return 0;" al finalizar el main...',
+            texto: '¿Por qué los programas en C para microcontroladores utilizan obligatoriamente un bucle while(1) en la función principal?',
+            opciones: [
+                'Porque si el main termina, el procesador salta a memoria vacía, causando un comportamiento indefinido o reinicio fatal.',
+                'Para permitir que el preprocesador compile las cabeceras .h repetitivamente.',
+                'Para mantener activas las resistencias Pull-Up de los puertos de entrada.',
+                'Para sincronizar el reloj interno PLL del microcontrolador.'
+            ],
+            correcta: 0,
+            retro: 'En un sistema embebido no existe un Sistema Operativo que retome el control tras un return; el firmware debe ejecutarse en un ciclo infinito (Superloop).'
+        },
+        {
+            id: 'q9', nivel: 3, tipo: 'codigo', pts: 4,
+            contexto: 'Caso 9: Modelado de Datos (Semáforo). Para organizar la lógica de la Práctica 3, agrupará el estado del semáforo Norte-Sur en una sola entidad en C.',
+            texto: 'Escriba la palabra reservada para definir esta estructura de datos personalizada.',
+            codigoBase: "typedef ________ {\n   uint8_t pinVerde;\n   uint8_t tiempo;\n} Semaforo_t;",
+            respuestaRegex: /struct/i,
+            retro: 'La palabra reservada "struct" permite crear abstracciones sólidas, agrupando diferentes variables relacionadas en un solo bloque de memoria contiguo.'
+        },
+        {
+            id: 'q10', nivel: 3, tipo: 'codigo', pts: 4,
+            contexto: 'Caso 10: Modificación de Registros en C. Replicando la instrucción BSF (Bit Set File) de ensamblador para activar un LED...',
+            texto: 'Escriba el operador compuesto en C (dos símbolos) que aplica una máscara lógica OR para ENCENDER únicamente el bit 3 de PORTB.',
+            codigoBase: "PORTB ________ (1 << 3);",
+            respuestaRegex: /\|=/i,
+            retro: 'El operador |= (OR igual) permite modificar un registro (Read-Modify-Write) encendiendo pines específicos sin alterar los estados de los demás bits.'
+        }
+    ];
+
+    const showToast = (msg, type = 'info') => {
+        const bg = type === 'error' ? 'bg-red-500' : (type === 'success' ? 'bg-green-500' : 'bg-indigo-500');
+        const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+        const t = document.createElement('div');
+        t.className = `toast ${bg} text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3`;
+        t.innerHTML = `<i class="fas ${icon} text-xl"></i><span class="font-medium">${msg}</span>`;
+        document.getElementById('toast-container').appendChild(t);
+        setTimeout(() => { t.classList.add('hiding'); setTimeout(() => t.remove(), 500); }, 4000);
+    };
+
+    const formatearTiempo = (min, seg) => `${min.toString().padStart(2,'0')}:${seg.toString().padStart(2,'0')}`;
+
+    const renderPreguntas = () => {
+        const container = document.getElementById('contenedor-preguntas');
+        container.innerHTML = '';
+        state.preguntasActivas.forEach((q, index) => {
+            const nivelBadge = q.nivel === 1 ? '<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded border border-blue-200 font-bold tracking-wide">NIVEL 1: Comprender</span>' : 
+                               q.nivel === 2 ? '<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded border border-yellow-200 font-bold tracking-wide">NIVEL 2: Analizar</span>' : 
+                               '<span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded border border-purple-200 font-bold tracking-wide">NIVEL 3: Evaluar/Crear</span>';
+            
+            let html = `
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-2 border-b border-gray-100 pb-3">
+                    <h3 class="text-lg font-bold text-gray-800">Reactivo ${index + 1} <span class="text-gray-400 text-sm ml-2 font-normal">Valor: ${q.pts} pts</span></h3>
+                    ${nivelBadge}
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-5 text-indigo-900 text-sm italic shadow-inner">
+                    <i class="fas fa-microchip text-indigo-400 mr-2"></i> <strong>Contexto:</strong> ${q.contexto}
+                </div>
+                <p class="text-gray-800 font-medium mb-5 text-base leading-relaxed">${q.texto}</p>
+            `;
+
+            if(q.tipo === 'radio') {
+                html += `<div class="space-y-3">`;
+                q.opciones.forEach((opc, i) => {
+                    html += `
+                    <label class="flex items-start p-4 border rounded-lg hover:bg-indigo-50 cursor-pointer transition-colors group">
+                        <input type="radio" name="${q.id}" value="${i}" class="w-5 h-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 mt-0.5">
+                        <span class="ml-3 text-gray-700 group-hover:text-indigo-900">${opc}</span>
+                    </label>`;
+                });
+                html += `</div>`;
+            } else if (q.tipo === 'codigo') {
+                const partes = q.codigoBase.split('________');
+                html += `
+                <div class="bg-gray-900 p-5 rounded-lg overflow-x-auto mt-2 shadow-inner border border-gray-700 flex flex-wrap items-center">
+                    <code class="code-font text-green-400 whitespace-pre-wrap">${q.codigoBase.includes('________') ? partes[0] : ''}</code>
+                    <input type="text" id="${q.id}" class="code-font bg-gray-800 text-white border-b-2 border-green-500 focus:outline-none focus:border-indigo-400 px-3 py-1 mx-2 text-center my-2 text-lg min-w-[100px] w-auto max-w-xs" placeholder="[código]" autocomplete="off" spellcheck="false">
+                    <code class="code-font text-green-400 whitespace-pre-wrap">${q.codigoBase.includes('________') ? partes[1] : ''}</code>
+                </div>`;
+            }
+            html += `</div>`;
+            container.innerHTML += html;
+        });
+    };
+
+    return {
+        iniciar: () => {
+            const nom = document.getElementById('alumno-nombre').value.trim();
+            const mat = document.getElementById('alumno-matricula').value.trim();
+            if(!nom || !mat) return showToast("Por favor, ingrese matrícula y nombre completo.", "error");
+
+            const matriculaNumerica = mat.replace(/\D/g, '');
+            const ultimoDigito = matriculaNumerica.length > 0 ? parseInt(matriculaNumerica.slice(-1)) : 0;
+            state.alumno.serie = ['A', 'B', 'C', 'D'][ultimoDigito % 4];
+            state.alumno.nombre = nom;
+            state.alumno.matricula = mat;
+
+            state.preguntasActivas = [...bancoMaestro]; 
+
+            document.getElementById('vista-registro').classList.add('hidden');
+            document.getElementById('vista-examen').classList.remove('hidden');
+            document.getElementById('examen-meta').classList.remove('hidden');
+            document.getElementById('display-serie').innerHTML = `<i class="fas fa-file-alt text-indigo-500"></i> Serie Asignada: ${state.alumno.serie}`;
+
+            document.addEventListener('visibilitychange', () => {
+                if(document.hidden && !document.getElementById('vista-examen').classList.contains('hidden')) {
+                    state.seguridad.salidas++;
+                    document.getElementById('display-warnings').innerHTML = `<i class="fas fa-exclamation-triangle"></i> Infracciones: ${state.seguridad.salidas}`;
+                    showToast("⚠️ INFRACCIÓN: Abandono de pestaña detectado.", "error");
+                }
+            });
+
+            state.seguridad.tiempoInicio = new Date();
+            state.seguridad.intervaloTimer = setInterval(() => {
+                state.seguridad.segundos++;
+                if(state.seguridad.segundos === 60) { state.seguridad.minutos++; state.seguridad.segundos = 0; }
+                document.getElementById('display-time').innerHTML = `<i class="fas fa-clock text-green-500"></i> Tiempo: ${formatearTiempo(state.seguridad.minutos, state.seguridad.segundos)}`;
+            }, 1000);
+
+            renderPreguntas();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showToast("Examen Ordinario iniciado. ¡Éxito!", "success");
+        },
+
+        entregar: () => {
+            if(!confirm("¿Está seguro de enviar su evaluación final?")) return;
+
+            clearInterval(state.seguridad.intervaloTimer);
+            let score = 0;
+            let maxScore = 40; 
+            let stepGrade = { funcionalidad: [], calidad: [], eficiencia: [] };
+
+            state.preguntasActivas.forEach(q => {
+                let esCorrecto = false;
+                if(q.tipo === 'radio') {
+                    const select = document.querySelector(`input[name="${q.id}"]:checked`);
+                    if(select && parseInt(select.value) === q.correcta) esCorrecto = true;
+                } else if(q.tipo === 'codigo') {
+                    const rawAns = document.getElementById(q.id).value;
+                    const ansClean = rawAns.replace(/\s+/g, '').toLowerCase(); 
+                    if(q.respuestaRegex.test(ansClean)) esCorrecto = true;
+                }
+
+                if(esCorrecto) {
+                    score += q.pts;
+                } else {
+                    if(q.nivel === 1) stepGrade.funcionalidad.push(q.retro);
+                    else if(q.nivel === 2) stepGrade.calidad.push(q.retro);
+                    else stepGrade.eficiencia.push(q.retro);
+                }
+            });
+
+            const porcentaje = (score / maxScore) * 100;
+            let rango = ""; let claseRango = "";
+            if(porcentaje >= 85) { rango = "🏆 Ingeniero Embebido (Excelente Integración)"; claseRango = "text-green-600"; }
+            else if(porcentaje >= 60) { rango = "🛠️ Desarrollador Junior (Competente)"; claseRango = "text-blue-600"; }
+            else { rango = "🌱 Analista en Formación (Requiere Estudio de Arquitectura)"; claseRango = "text-red-600"; }
+
+            document.getElementById('vista-examen').classList.add('hidden');
+            const repo = document.getElementById('reporte-contenido');
+            
+            repo.innerHTML = `
+                <div class="border-4 border-indigo-900 p-6 md:p-10 rounded-xl relative bg-white">
+                    <div class="absolute top-0 right-0 bg-indigo-900 text-white px-4 py-1 rounded-bl-xl font-bold text-xs tracking-wider">ACTA DE ORDINARIO</div>
+                    
+                    <h2 class="text-2xl md:text-3xl font-black mb-6 text-indigo-900 border-b-2 border-gray-200 pb-3">Resultados de Evaluación Final</h2>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 bg-gray-50 p-5 rounded-lg border border-gray-200 shadow-sm">
+                        <div><p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Sustentante</p><p class="font-bold text-gray-800 truncate">${state.alumno.nombre}</p></div>
+                        <div><p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Matrícula</p><p class="font-bold text-gray-800">${state.alumno.matricula} (S: ${state.alumno.serie})</p></div>
+                        <div><p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Tiempo Empleado</p><p class="font-bold text-blue-600">${formatearTiempo(state.seguridad.minutos, state.seguridad.segundos)}</p></div>
+                        <div><p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Integridad</p><p class="font-bold text-${state.seguridad.salidas > 0 ? 'red' : 'green'}-600">${state.seguridad.salidas} salidas</p></div>
+                    </div>
+
+                    <div class="text-center mb-10 p-8 bg-indigo-50 rounded-xl shadow-inner border border-indigo-100">
+                        <p class="text-indigo-600 uppercase tracking-widest text-sm mb-2 font-bold">Puntaje Oficial Obtenido</p>
+                        <p class="text-6xl font-black mb-3 text-indigo-900">${score} <span class="text-2xl text-indigo-400">/ ${maxScore} pts</span></p>
+                        <p class="text-xl font-bold ${claseRango}">${rango}</p>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-gray-800 mb-5 flex items-center"><i class="fas fa-layer-group text-indigo-500 mr-3"></i> Diagnóstico de Arquitectura y Lenguaje C</h3>
+                    <div class="space-y-5">
+                        <div class="p-5 border-l-4 border-blue-500 bg-blue-50/50 rounded-r-lg">
+                            <h4 class="font-bold text-blue-800 mb-3 text-lg">1. Fundamentos de Hardware y Datos</h4>
+                            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                                ${stepGrade.funcionalidad.length > 0 ? stepGrade.funcionalidad.map(r => `<li>${r}</li>`).join('') : '<li class="text-green-700 font-medium">Dominio absoluto en configuración de Puertos TRIS/PORT y tipos stdint.h.</li>'}
+                            </ul>
+                        </div>
+                        <div class="p-5 border-l-4 border-yellow-500 bg-yellow-50/50 rounded-r-lg">
+                            <h4 class="font-bold text-yellow-800 mb-3 text-lg">2. Análisis Lógico e Interrupciones</h4>
+                            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                                ${stepGrade.calidad.length > 0 ? stepGrade.calidad.map(r => `<li>${r}</li>`).join('') : '<li class="text-green-700 font-medium">Excelente manejo del flujo, Timer 0 y banderas de interrupción (INT0IF).</li>'}
+                            </ul>
+                        </div>
+                        <div class="p-5 border-l-4 border-purple-500 bg-purple-50/50 rounded-r-lg">
+                            <h4 class="font-bold text-purple-800 mb-3 text-lg">3. Creación y Abstracción (Bits & Structs)</h4>
+                            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                                ${stepGrade.eficiencia.length > 0 ? stepGrade.eficiencia.map(r => `<li>${r}</li>`).join('') : '<li class="text-green-700 font-medium">Capacidad avanzada para modelar datos (Structs) y uso magistral de máscaras a nivel de bits.</li>'}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('vista-reporte').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            const payload = {
+                nombre: state.alumno.nombre,
+                matricula: state.alumno.matricula,
+                serie: state.alumno.serie,
+                aciertos: score,
+                calificacion: porcentaje.toFixed(1) + '%',
+                tiempo: formatearTiempo(state.seguridad.minutos, state.seguridad.segundos),
+                salidasPestaña: state.seguridad.salidas
+            };
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                showToast("✅ Resultados del Ordinario sincronizados con el Profesor.", "success");
+            }).catch(e => {
+                showToast("Fallo de red. Descargue su PDF como evidencia.", "error");
+            });
+        }
+    };
+})();
+</script>
+</body>
+</html>
