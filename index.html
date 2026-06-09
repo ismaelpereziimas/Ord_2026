@@ -259,7 +259,7 @@ const app = (function() {
             retro: 'Usar un puntero (int *temp) y desreferenciarlo con paréntesis (*temp) garantiza que escribamos en la dirección de memoria original de forma segura y sin conflictos de precedencia.'
         },
         {
-     {
+     
             id: 'q14', nivel: 2, tipo: 'radio', pts: 2.5,
             contexto: 'C Embebido Caso: Code Review - Memoria y Alcance (Scope). Tu alumno Mateo quiere que un LED cambie de color (haga una secuencia) cada vez que presiona un botón. Creó una función para contar los clics, pero se frustra porque el contador nunca pasa de 1, sin importar cuántas veces presione el botón. Te muestra este código:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">void actualizar_secuencia() {<br>&nbsp;&nbsp;int contador = 0;<br>&nbsp;&nbsp;if(boton_presionado()) {<br>&nbsp;&nbsp;&nbsp;&nbsp;contador++;<br>&nbsp;&nbsp;}<br>&nbsp;&nbsp;if(contador == 1) prender_rojo();<br>&nbsp;&nbsp;if(contador == 2) prender_verde();<br>}</code>',
             texto: 'Basado en las reglas de alcance de variables (scope) en C, ¿cuál es el error lógico que le causa "amnesia" al programa y cómo se soluciona?',
