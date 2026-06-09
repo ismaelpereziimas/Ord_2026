@@ -12,8 +12,10 @@
         .code-font { font-family: 'Fira Code', monospace; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .toast { animation: slideIn 0.3s ease-out forwards; }
         .toast.hiding { animation: fadeOut 0.5s ease-out forwards; }
+        .anim-pop { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @media print {
             body { background: white; }
             .no-print { display: none !important; }
@@ -462,7 +464,18 @@ const app = (function() {
 
             const porcentaje = (score / maxScore) * 100;
             let rango = ""; let claseRango = "";
-            if(porcentaje >= 85) { rango = "🏆 Caballero de Oro (Aprobado) ♈♉♊"; claseRango = "text-yellow-600"; }
+            let imagenOroHTML = ""; // NUEVO CONTENEDOR PARA LA IMAGEN
+
+            if(porcentaje >= 85) { 
+                rango = "🏆 Caballero de Oro (Aprobado) ♈♉♊"; 
+                claseRango = "text-yellow-600"; 
+                // INYECTAMOS LA IMAGEN DE CABALLERO DE ORO
+                imagenOroHTML = `
+                <div class="flex justify-center mb-8 anim-pop">
+                    <img src="image_291efd.jpg" alt="Casa de Escorpio" class="rounded-2xl shadow-2xl border-4 border-yellow-500 max-h-80 object-cover">
+                </div>
+                `;
+            }
             else if(porcentaje >= 60) { rango = "🥈 Caballero de Plata (Aprobado) 🦅🦎🐋"; claseRango = "text-gray-500"; }
             else { rango = "🥉 Caballero de Bronce (No Aprobado) 🐉🦢🐎"; claseRango = "text-amber-700"; }
 
@@ -522,6 +535,8 @@ const app = (function() {
                     
                     <h2 class="text-3xl md:text-4xl font-black mb-8 text-indigo-950 border-b-4 border-gray-100 pb-4">Santuario Académico: Resultados</h2>
                     
+                    ${imagenOroHTML}
+                    
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 bg-indigo-50/50 p-6 rounded-xl border border-indigo-100 shadow-inner">
                         <div><p class="text-xs text-indigo-400 uppercase tracking-widest mb-1 font-bold">Sustentante</p><p class="font-black text-gray-800 text-lg truncate">${state.alumno.nombre}</p></div>
                         <div><p class="text-xs text-indigo-400 uppercase tracking-widest mb-1 font-bold">Matrícula</p><p class="font-black text-gray-800 text-lg">${state.alumno.matricula} (S:${state.alumno.serie})</p></div>
@@ -529,6 +544,7 @@ const app = (function() {
                         <div><p class="text-xs text-indigo-400 uppercase tracking-widest mb-1 font-bold">Integridad</p><p class="font-black text-${state.seguridad.salidas > 0 ? 'red' : 'green'}-600 text-lg">${state.seguridad.salidas} incidentes</p></div>
                     </div>
 
+                    <!-- SECCIÓN CACEI -->
                     <div class="mb-10 flex justify-center">
                         <div class="bg-indigo-900 text-white rounded-xl px-8 py-4 shadow-lg border-2 border-indigo-400 flex items-center gap-4">
                             <i class="fas fa-graduation-cap text-3xl text-indigo-300"></i>
@@ -546,6 +562,7 @@ const app = (function() {
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- COLUMNA ERRORES -->
                         <div>
                             <h3 class="text-xl font-black text-red-800 mb-4 flex items-center"><i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Armadura Rota (Errores)</h3>
                             <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-inner max-h-96 overflow-y-auto">
@@ -553,6 +570,7 @@ const app = (function() {
                             </div>
                         </div>
                         
+                        <!-- COLUMNA ACIERTOS -->
                         <div>
                             <h3 class="text-xl font-black text-green-800 mb-4 flex items-center"><i class="fas fa-check-circle text-green-500 mr-2"></i> Cosmos Dominado (Aciertos)</h3>
                             <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-inner max-h-96 overflow-y-auto">
