@@ -249,7 +249,7 @@ const app = (function() {
         },
         {
             id: 'q13', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: `C Embebido Caso 13: Code Review. Tu alumno Alex quiere que un LED cambie de color (haga una secuencia de encendido y apagado) cada vez que presiona un botón. Creó una función para contar los clics, pero se frustra porque el contador nunca pasa de 1, sin importar cuántas veces presione el botón. Te muestra este código:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">void actualizar_secuencia() {<br>&nbsp;&nbsp;int contador = 0;<br>&nbsp;&nbsp;if(boton_presionado()) {<br>&nbsp;&nbsp;&nbsp;&nbsp;contador++;<br>&nbsp;&nbsp;}<br>&nbsp;&nbsp;if(contador == 1) prender_rojo();<br>&nbsp;&nbsp;if(contador == 2) prender_verde();<br>}</code>`,
+            contexto: `C Embebido Caso 13: Code Review. Tu alumno el Alex quiere que un LED cambie de color (haga una secuencia de encendido y apagado) cada vez que presiona un botón. Creó una función para contar los clics, pero se frustra porque el contador nunca pasa de 1, sin importar cuántas veces presione el botón. Te muestra este código:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">void actualizar_secuencia() {<br>&nbsp;&nbsp;int contador = 0;<br>&nbsp;&nbsp;if(boton_presionado()) {<br>&nbsp;&nbsp;&nbsp;&nbsp;contador++;<br>&nbsp;&nbsp;}<br>&nbsp;&nbsp;if(contador == 1) prender_rojo();<br>&nbsp;&nbsp;if(contador == 2) prender_verde();<br>}</code>`,
             texto: `Basado en las reglas de alcance de variables en C, ¿cuál es el error lógico que le causa "amnesia" al programa y cómo se soluciona?`,
             opciones: [
                 `El microcontrolador reinicia las variables enteras en cada ciclo del while(1). La solución es usar variables de tipo float.`,
@@ -261,21 +261,22 @@ const app = (function() {
             retro: `Las variables locales (declaradas dentro de una función) se destruyen al salir de ella. Al volver a llamar a "actualizar_secuencia()", la variable se crea de nuevo con valor 0. Para que un contador "recuerde" su valor entre ciclos, debe ser global o estático (static).`
         },
         {
+          {
             id: 'q14', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: `C Embebido Caso 14: Code Review - Optimización. Tu alumna Sofía diseña un monitor de batería para un dron. Al compilar su código, se asusta porque el uso de la memoria Flash saltó casi 2KB de golpe y el lazo principal se volvió muy lento. Te pide ayuda y te muestra esta línea de código:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">float voltaje = analogRead(A0) * (5.0 / 1023.0);<br>if (voltaje &lt; 3.2) { activarAlarma(); }</code>`,
-            texto: `Sabiendo que utilizan un microcontrolador de 8 bits, ¿cuál es el origen arquitectónico de este cuello de botella y cómo lo solucionarías?`,
+            contexto: `C Embebido Caso 14: Code Review. Tu alumna Sofía está programando un sistema de seguridad industrial. Quiere que un LED parpadee constantemente mientras el sistema vigila un sensor de gas. Te pide ayuda porque, al inyectar gas de prueba, la alarma tarda hasta 1 segundo entero en reaccionar. Su código es el siguiente:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">void loop() {<br>&nbsp;&nbsp;PORTB ^= (1 << PIN_LED); // Toggle LED<br>&nbsp;&nbsp;_delay_ms(1000);<br>&nbsp;&nbsp;if(leer_gas() > NIVEL_PELIGRO) { activar_valvula(); }<br>}</code>`,
+            texto: `¿Por qué esta estructura lógica es un peligro para un sistema en "tiempo real" y cómo debe solucionarse profesionalmente?`,
             opciones: [
-                `El ADC no soporta multiplicación directa con constantes. La solución es declarar las variables como globales para evitar la carga en el registro W o Acumulador.`,
-                `Las variables tipo float fragmentan la memoria SRAM dinámica. La solución es hacer un casting directo usando: int voltaje = (int)(analogRead(A0) * 0.0048);`,
-                `El microcontrolador no tiene Unidad de Punto Flotante (FPU) física. El compilador debe inyectar pesadas librerías de software para simular los decimales. La solución es trabajar todo en aritmética entera (ej. usar milivoltios: uint16_t mv = (analogRead(A0) * 5000UL) / 1023;).`,
-                `El error de rendimiento está en el if(), ya que el estándar de C embebido prohíbe comparar números flotantes directamente debido al estándar IEEE-754.`
+                `Las lecturas del sensor se corrompen cuando se alternan bits de salida usando el operador XOR (^=). Se debe conectar el sensor de gas a otro puerto distinto.`,
+                `La función de retardo detiene por completo el procesamiento del CPU. El microcontrolador queda "ciego" e inútil durante ese segundo. La solución es usar interrupciones de hardware o temporizadores no bloqueantes (ej. interrupciones de Timer o millis()).`,
+                `El compilador da menor prioridad a la función leer_gas() al estar después de un delay. Por reglas de compilación, el condicional if() debe escribirse siempre en la primera línea del loop.`,
+                `El Watchdog Timer entra en modo de bajo consumo durante el _delay_ms() y apaga los pines analógicos. Hay que declarar la variable de lectura como volatile.`
             ],
-            correcta: 2,
-            retro: `Las operaciones con "float" y "double" son extremadamente costosas en MCUs básicos. Al no tener FPU (hardware dedicado para decimales), el compilador emula la matemática por software, devorando memoria Flash y ciclos del CPU. Escalar las unidades a enteros (como usar milivoltios en lugar de voltios fraccionarios) es la técnica mecatrónica correcta para mantener el código veloz.`
+            correcta: 1,
+            retro: `Las funciones de retardo como _delay_ms() o delay() son bucles que bloquean totalmente al procesador. En mecatrónica, usar retardos bloqueantes en el lazo principal vuelve al sistema ciego e incapaz de reaccionar a emergencias. Todo sistema multitarea debe usar interrupciones, máquinas de estados o contadores asíncronos.`
         },
         {
             id: 'q15', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: `C Embebido Caso 15: Code Review - Corrupción de Memoria. Tu alumno Iván está armando un datalogger para guardar lecturas analógicas. Te busca desesperado a la 1 am porque, al correr el programa, el microcontrolador hace cosas raras: otras variables cambian sus valores "mágicamente" o el sistema se cuelga. Te muestra este fragmento:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">uint16_t lecturas[5];<br><br>void actualizar_sensores() {<br>&nbsp;&nbsp;for(int i = 1; i &lt;= 5; i++) {<br>&nbsp;&nbsp;&nbsp;&nbsp;lecturas[i] = analogRead(A0);<br>&nbsp;&nbsp;}<br>}</code>`,
+            contexto: `C Embebido Caso 15: Code Review. Tu alumno Iván está armando un datalogger para guardar lecturas analógicas. Te busca desesperado a la 1 am porque, al correr el programa, el microcontrolador hace cosas raras: otras variables cambian sus valores "mágicamente" o el sistema se cuelga. Te muestra este fragmento:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">uint16_t lecturas[5];<br><br>void actualizar_sensores() {<br>&nbsp;&nbsp;for(int i = 1; i &lt;= 5; i++) {<br>&nbsp;&nbsp;&nbsp;&nbsp;lecturas[i] = analogRead(A0);<br>&nbsp;&nbsp;}<br>}</code>`,
             texto: `Basado en las reglas de memoria de C, ¿cuál es el error técnico que cometió Iván y por qué causa ese comportamiento "curioso"?`,
             opciones: [
                 `En C, los arreglos comienzan en el índice 0. Al iterar hasta "i &lt;= 5", Iván intenta escribir en "lecturas[5]", desbordando la memoria reservada (Array Overflow) y sobrescribiendo silenciosamente variables adyacentes en la SRAM.`,
@@ -303,12 +304,12 @@ const app = (function() {
             retro: `La función OR Exclusiva (XOR bit a bit, ^=) invierte matemáticamente el estado del bit apuntado: si era 1 lo hace 0, y si era 0 lo hace 1.`
         },
         {
-            id: 'q18', nivel: 3, tipo: 'codigo', pts: 2.5,
-            contexto: `C Embebido Caso 18: Estructuras y Punteros. Tiene declarada una estructura Sensor_t y una función que recibe un puntero a dicha estructura: Sensor_t *ps = &sensor1;`,
-            texto: `Escriba el operador en C necesario para acceder al miembro "temperatura" a través del PUNTERO ps.`,
-            codigoBase: `ps________temperatura = 26.0;`,
-            respuestaRegex: /->/,
-            retro: `En C, al utilizar un puntero que apunta a una estructura (struct), el operador de acceso indirecto obligatorio es la flecha (->).`
+           id: 'q18', nivel: 3, tipo: 'codigo', pts: 2.5,
+            contexto: `C Embebido Caso 18: Desreferencia (Paso por Referencia). Para no saturar la memoria SRAM creando copias de variables, tu función recibe directamente la dirección de memoria de una lectura analógica: void atenuarSenalReal(int *valorReferencia).`,
+            texto: `Escriba el operador unario (1 símbolo) que debe colocar obligatoriamente antes del nombre del puntero para indicarle al compilador que vaya a esa dirección física y sobrescriba el dato original.`,
+            codigoBase: `________valorReferencia = 400;`,
+            respuestaRegex: /\*/,
+            retro: `Durante la ejecución, el operador asterisco (*) actúa como operador de desreferencia (indirección). Le ordena al microcontrolador entrar a la dirección de memoria apuntada y alterar su contenido real en la SRAM, completando así el paso por referencia.`
         },
         {
             id: 'q19', nivel: 3, tipo: 'radio', pts: 2.5,
