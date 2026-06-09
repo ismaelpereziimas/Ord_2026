@@ -109,232 +109,230 @@ const app = (function() {
         // --- BLOQUE 1: PIC18F4550 & ENSAMBLADOR/REGISTROS ---
         {
             id: 'q1', nivel: 1, tipo: 'radio', pts: 2.5,
-            contexto: 'PIC/C Caso 1: Conversor ADC y Registros Base. Un Ingeniero está programando de un sistema biométrico que lee la temperatura analógica en RA0, se observa la rutina: MOVLW B\'00001111\' seguida de MOVWF ADCON1.',
-            texto: '¿Qué efecto tiene esta configuración del registro ADCON1 en el PIC18F4550?',
+            contexto: `PIC/C Caso 1: Conversor ADC y Registros Base. Un Ingeniero está programando un sistema biométrico que lee la temperatura analógica en RA0, se observa la rutina: MOVLW B'00001111' seguida de MOVWF ADCON1.`,
+            texto: `¿Qué efecto tiene esta configuración del registro ADCON1 en el PIC18F4550?`,
             opciones: [
-                'Inicia el muestreo analógico (GO/DONE).',
-                'Configura todos los canales multiplexados estrictamente como I/O digitales, deshabilitando la lectura analógica.',
-                'Justifica la lectura de 10 bits del ADC hacia la izquierda en ADRESH.',
-                'Habilita voltajes de referencia externos.'
+                `Inicia el muestreo analógico (GO/DONE).`,
+                `Configura todos los canales multiplexados estrictamente como I/O digitales, deshabilitando la lectura analógica.`,
+                `Justifica la lectura de 10 bits del ADC hacia la izquierda en ADRESH.`,
+                `Habilita voltajes de referencia externos.`
             ],
             correcta: 1,
-            retro: 'La asignación de 0x0F a los bits PCFG de ADCON1 configura todos los pines como puertos digitales, inhabilitando las lecturas del ADC.'
+            retro: `La asignación de 0x0F a los bits PCFG de ADCON1 configura todos los pines como puertos digitales, inhabilitando las lecturas del ADC.`
         },
         {
             id: 'q2', nivel: 1, tipo: 'radio', pts: 2.5,
-            contexto: 'PIC Caso 2: Interrupciónes. El sargento Moheno, ahora convertido en ingeniero, está programando un sistema basado en interrupciones y programa un paro de emergencia está en INT0. El ingeniero, como es descuidado, olvidó colocar "BCF INTCON, INT0IF" antes del "RETFIE".',
-            texto: '¿Cuál será el comportamiento del hardware al salir de la rutina de interrupción?',
+            contexto: `PIC Caso 2: Interrupciónes. El sargento Moheno, ahora convertido en ingeniero, está programando un sistema basado en interrupciones y programa un paro de emergencia en INT0. El ingeniero, como es descuidado, olvidó colocar "BCF INTCON, INT0IF" antes del "RETFIE".`,
+            texto: `¿Cuál será el comportamiento del hardware al salir de la rutina de interrupción?`,
             opciones: [
-                'El sistema reanudará el lazo principal ignorando futuras emergencias.',
-                'Entrará en un bucle infinito: regresará inmediatamente a la ISR porque el hardware cree que el evento sigue ocurriendo.',
-                'Se generará un reinicio del sistema por el Watchdog.',
-                'El registro GIE se apagará permanentemente.'
+                `El sistema reanudará el lazo principal ignorando futuras emergencias.`,
+                `Entrará en un bucle infinito: regresará inmediatamente a la ISR porque el hardware cree que el evento sigue ocurriendo.`,
+                `Se generará un reinicio del sistema por el Watchdog.`,
+                `El registro GIE se apagará permanentemente.`
             ],
             correcta: 1,
-            retro: 'Si la bandera no se limpia por software (BCF), la condición de disparo sigue activa. Al ejecutar RETFIE, el sistema salta de inmediato de regreso a la interrupción.'
+            retro: `Si la bandera no se limpia por software (BCF), la condición de disparo sigue activa. Al ejecutar RETFIE, el sistema salta de inmediato de regreso a la interrupción.`
         },
         {
             id: 'q3', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: 'PIC Caso 3: Manejo de Puertos. Un motor de alta precisión conmutando pines en PORTD "tiembla" por el efecto Read-Modify-Write.',
-            texto: '¿Qué registro debe utilizarse en lugar de PORTD para solucionar esto en C/Ensamblador?',
+            contexto: `PIC Caso 3: Manejo de Puertos. Un motor de alta precisión conmutando pines en PORTD "tiembla" por el efecto Read-Modify-Write.`,
+            texto: `¿Qué registro debe utilizarse en lugar de PORTD para solucionar esto en C/Ensamblador?`,
             opciones: [
-                'El registro TRISD.',
-                'El Data Latch utilizando el registro LATD.',
-                'El registro INTCON.',
-                'El Timer 0 para añadir retardos.'
+                `El registro TRISD.`,
+                `El Data Latch utilizando el registro LATD.`,
+                `El registro INTCON.`,
+                `El Timer 0 para añadir retardos.`
             ],
             correcta: 1,
-            retro: 'Escribir en el registro LAT (Latch) evita el problema "Read-Modify-Write", ya que modifica el valor interno en lugar de leer el voltaje físico del pin.'
+            retro: `Escribir en el registro LAT (Latch) evita el problema "Read-Modify-Write", ya que modifica el valor interno en lugar de leer el voltaje físico del pin.`
         },
         {
             id: 'q4', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: 'PIC Caso 4: Timer. El manual indica una regla estricta sobre cómo cargar TMR0H y TMR0L.',
-            texto: '¿Qué sucede si carga primero el byte en TMR0L y después en TMR0H?',
+            contexto: `PIC Caso 4: Timer. El manual indica una regla estricta sobre cómo cargar TMR0H y TMR0L.`,
+            texto: `¿Qué sucede si carga primero el byte en TMR0L y después en TMR0H?`,
             opciones: [
-                'El byte alto (TMR0H) se quedará en un buffer y no se actualizará en el contador real hasta volver a escribir en TMR0L.',
-                'El hardware invertirá automáticamente los bytes.',
-                'El bit de desbordamiento (TMR0IF) se disparará instantáneamente.',
-                'Ambos registros se cargarán correctamente.'
+                `El byte alto (TMR0H) se quedará en un buffer y no se actualizará en el contador real hasta volver a escribir en TMR0L.`,
+                `El hardware invertirá automáticamente los bytes.`,
+                `El bit de desbordamiento (TMR0IF) se disparará instantáneamente.`,
+                `Ambos registros se cargarán correctamente.`
             ],
             correcta: 0,
-            retro: 'En 16 bits, TMR0H es un buffer. El contador completo solo se actualiza al escribir TMR0L. Siempre debe escribirse High primero y luego Low.'
+            retro: `En 16 bits, TMR0H es un buffer. El contador completo solo se actualiza al escribir TMR0L. Siempre debe escribirse High primero y luego Low.`
         },
         {
             id: 'q5', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: 'PIC Caso 5: Polling. Imagina que estás en espera de un evento usando "BTFSS INTCON, TMR0IF" seguida de "GOTO LOOP".',
-            texto: 'Si estuvieses programando en C, tendrías que usar Estructuras de Control, ¿qué instrucción representa el equivalente a esta técnica de hardware bloqueante?',
+            contexto: `PIC Caso 5: Polling. Imagina que estás en espera de un evento usando "BTFSS INTCON, TMR0IF" seguida de "GOTO LOOP".`,
+            texto: `Si estuvieses programando en C, tendrías que usar Estructuras de Control, ¿qué instrucción representa el equivalente a esta técnica de hardware bloqueante?`,
             opciones: [
-                'if (INTCONbits.TMR0IF == 1)',
-                'switch (INTCONbits.TMR0IF)',
-                'for(int i = 0; i < 255; i++)',
-                'while (INTCONbits.TMR0IF == 0) { }'
+                `if (INTCONbits.TMR0IF == 1)`,
+                `switch (INTCONbits.TMR0IF)`,
+                `for(int i = 0; i &lt; 255; i++)`,
+                `while (INTCONbits.TMR0IF == 0) { }`
             ],
             correcta: 3,
-            retro: 'El Polling (BTFSS + GOTO) equivale a un bucle "while" vacío y bloqueante, donde el CPU se atasca hasta que la bandera cambie a 1.'
+            retro: `El Polling (BTFSS + GOTO) equivale a un bucle "while" vacío y bloqueante, donde el CPU se atasca hasta que la bandera cambie a 1.`
         },
         {
             id: 'q6', nivel: 3, tipo: 'codigo', pts: 2.5,
-            contexto: 'PIC Caso 6: Vectores Absolutos. El compilador debe ubicar la subrutina "HighInt" exactamente en el vector de Alta Prioridad.',
-            texto: 'Escriba la directiva de Ensamblador (3 letras) para iniciar el código en la memoria 0x0008.',
-            codigoBase: "________ 0x0008\n bra HighInt",
+            contexto: `PIC Caso 6: Vectores Absolutos. El compilador debe ubicar la subrutina "HighInt" exactamente en el vector de Alta Prioridad.`,
+            texto: `Escriba la directiva de Ensamblador (3 letras) para iniciar el código en la memoria 0x0008.`,
+            codigoBase: `________ 0x0008\n bra HighInt`,
             respuestaRegex: /org/i,
-            retro: 'La directiva ORG (Origin) establece la dirección de memoria absoluta del código.'
+            retro: `La directiva ORG (Origin) establece la dirección de memoria absoluta del código.`
         },
         {
             id: 'q7', nivel: 3, tipo: 'radio', pts: 2.5,
-            contexto: 'PIC Caso 7: Interrupciones. Diseñas el controlador de una celda de manufactura con una prensa neumática. Tienes dos eventos asíncronos: 1) El módulo UART (RX) de comunicación serial solicita atención para recibir la nueva cuota de producción desde la PC central, y 2) Una cortina óptica de seguridad (INT0) detecta si el operador introduce la mano en la zona de riesgo.',
-            texto: 'Al habilitar el modelo de prioridades (IPEN=1) en el PIC18F4550, ¿qué asignación de vectores debes implementar y cuál es la justificación técnica que defiende tu diseño?',
+            contexto: `PIC Caso 7: Interrupciones. Diseñas el controlador de una celda de manufactura con una prensa neumática. Tienes dos eventos asíncronos: 1) El módulo UART (RX) de comunicación serial solicita atención para recibir la nueva cuota de producción desde la PC central, y 2) Una cortina óptica de seguridad (INT0) detecta si el operador introduce la mano en la zona de riesgo.`,
+            texto: `Al habilitar el modelo de prioridades (IPEN=1) en el PIC18F4550, ¿qué asignación de vectores debes implementar y cuál es la justificación técnica que defiende tu diseño?`,
             opciones: [
-                'Cortina óptica en Baja Prioridad (0x0018) y UART en Alta Prioridad (0x0008), garantizando que no se pierda ningún byte de datos de la receta de producción.',
-                'Ambas en Alta Prioridad (0x0008) para que el CPU las procese simultáneamente dividiendo el reloj de instrucción.',
-                'Cortina óptica en Alta Prioridad (0x0008) y UART en Baja Prioridad (0x0018). El evento de seguridad humana debe poder interrumpir al CPU incluso si está a la mitad de la recepción de datos.',
-                'Mantener ambas interrupciones en Baja Prioridad, ya que el hardware del PIC18 automáticamente da preferencia a los pines externos sobre los periféricos de comunicación.'
+                `Cortina óptica en Baja Prioridad (0x0018) y UART en Alta Prioridad (0x0008), garantizando que no se pierda ningún byte de datos de la receta de producción.`,
+                `Ambas en Alta Prioridad (0x0008) para que el CPU las procese simultáneamente dividiendo el reloj de instrucción.`,
+                `Cortina óptica en Alta Prioridad (0x0008) y UART en Baja Prioridad (0x0018). El evento de seguridad humana debe poder interrumpir al CPU incluso si está a la mitad de la recepción de datos.`,
+                `Mantener ambas interrupciones en Baja Prioridad, ya que el hardware del PIC18 automáticamente da preferencia a los pines externos sobre los periféricos de comunicación.`
             ],
             correcta: 2,
-            retro: 'En automatización, la seguridad del operador es absoluta. Asignar la cortina óptica a la Alta Prioridad permite el "anidamiento": el CPU pausará de inmediato cualquier tarea (incluso si está a la mitad de una interrupción de baja prioridad leyendo la UART) para activar el paro de emergencia.'
+            retro: `En automatización, la seguridad del operador es absoluta. Asignar la cortina óptica a la Alta Prioridad permite el "anidamiento": el CPU pausará de inmediato cualquier tarea (incluso si está a la mitad de una interrupción de baja prioridad leyendo la UART) para activar el paro de emergencia.`
         },
         {
             id: 'q8', nivel: 3, tipo: 'codigo', pts: 2.5,
-            contexto: 'PIC/C Caso 8: Bitwise. Configurar EXCLUSIVAMENTE el bit 3 de TRISD como ENTRADA (1), sin sobreescribir el resto del byte.',
-            texto: 'Complete con el operador de ASIGNACIÓN COMPUESTA para realizar una máscara OR.',
-            codigoBase: "TRISD ________ (1 << 3);",
+            contexto: `PIC/C Caso 8: Bitwise. Configurar EXCLUSIVAMENTE el bit 3 de TRISD como ENTRADA (1), sin sobreescribir el resto del byte.`,
+            texto: `Complete con el operador de ASIGNACIÓN COMPUESTA para realizar una máscara OR.`,
+            codigoBase: `TRISD ________ (1 << 3);`,
             respuestaRegex: /\|=/i,
-            retro: 'El operador OR compuesto (|=) fuerza un bit a "1" manteniendo intacto el resto (Read-Modify-Write por software).'
+            retro: `El operador OR compuesto (|=) fuerza un bit a "1" manteniendo intacto el resto (Read-Modify-Write por software).`
         },
         {
             id: 'q9', nivel: 3, tipo: 'codigo', pts: 2.5,
-            contexto: 'PIC Caso 9: Acumulador. Desea apagar el Puerto A.',
-            texto: 'Antes de usar MOVWF, escriba el mnemotécnico para cargar el valor literal 0x00 en el registro de trabajo (WREG).',
-            codigoBase: "________ 0x00\n MOVWF PORTA",
+            contexto: `PIC Caso 9: Acumulador. Desea apagar el Puerto A.`,
+            texto: `Antes de usar MOVWF, escriba el mnemotécnico para cargar el valor literal 0x00 en el registro de trabajo (WREG).`,
+            codigoBase: `________ 0x00\n MOVWF PORTA`,
             respuestaRegex: /movlw/i,
-            retro: 'MOVLW (Move Literal to W) carga una constante en el acumulador antes de pasarla a un puerto.'
+            retro: `MOVLW (Move Literal to W) carga una constante en el acumulador antes de pasarla a un puerto.`
         },
         {
             id: 'q10', nivel: 3, tipo: 'codigo', pts: 2.5,
-            contexto: 'PIC Caso 10: T0CON Clock Source. El Timer 0 debe usar el oscilador interno, no el pin T0CKI.',
-            texto: 'Escriba el mnemotécnico (3 letras) para LIMPIAR (poner en 0) el bit T0CS.',
-            codigoBase: "________ T0CON, T0CS",
+            contexto: `PIC Caso 10: T0CON Clock Source. El Timer 0 debe usar el oscilador interno, no el pin T0CKI.`,
+            texto: `Escriba el mnemotécnico (3 letras) para LIMPIAR (poner en 0) el bit T0CS.`,
+            codigoBase: `________ T0CON, T0CS`,
             respuestaRegex: /bcf/i,
-            retro: 'BCF (Bit Clear File) limpia el bit T0CS, forzando al Timer 0 a usar el reloj interno.'
+            retro: `BCF (Bit Clear File) limpia el bit T0CS, forzando al Timer 0 a usar el reloj interno.`
         },
 
         // --- BLOQUE 2: LENGUAJE C EMBEBIDO ---
         {
             id: 'q11', nivel: 1, tipo: 'radio', pts: 2.5,
-            contexto: 'C Embebido Caso 11: Tipos de Datos. Un contador de máquina necesita almacenar hasta 60,000 iteraciones.',
-            texto: 'Según la librería <stdint.h> (Buenas prácticas), ¿cuál es el tipo de dato de ancho fijo ideal que ocupa la menor memoria posible sin desbordarse?',
+            contexto: `C Embebido Caso 11: Tipos de Datos. Un contador de máquina necesita almacenar hasta 60,000 iteraciones.`,
+            texto: `Según la librería <stdint.h> (Buenas prácticas), ¿cuál es el tipo de dato de ancho fijo ideal que ocupa la menor memoria posible sin desbordarse?`,
             opciones: [
-                'int',
-                'uint8_t',
-                'uint16_t',
-                'float'
+                `int`,
+                `uint8_t`,
+                `uint16_t`,
+                `float`
             ],
             correcta: 2,
-            retro: 'El tipo uint16_t (entero de 16 bits sin signo) garantiza poder almacenar de 0 a 65535, ocupando exactamente 2 bytes, ideal para sistemas embebidos.'
+            retro: `El tipo uint16_t (entero de 16 bits sin signo) garantiza poder almacenar de 0 a 65535, ocupando exactamente 2 bytes, ideal para sistemas embebidos.`
         },
         {
             id: 'q12', nivel: 1, tipo: 'radio', pts: 2.5,
-            contexto: 'C Embebido Caso 12: Arquitectura del Programa. Un alumno te pide revisar el siguiente código que escribió para hacer parpadear un LED:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">int main(void) {<br>&nbsp;&nbsp;hardware_init();<br>&nbsp;&nbsp;LED_TOG();<br>&nbsp;&nbsp;_delay_ms(500);<br>&nbsp;&nbsp;return 0;<br>}</code>',
-            texto: '¿Cuál es el error arquitectónico crítico en este programa embebido?',
+            contexto: `C Embebido Caso 12: Arquitectura del Programa. Un alumno te pide revisar el siguiente código que escribió para hacer parpadear un LED:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">int main(void) {<br>&nbsp;&nbsp;hardware_init();<br>&nbsp;&nbsp;LED_TOG();<br>&nbsp;&nbsp;_delay_ms(500);<br>&nbsp;&nbsp;return 0;<br>}</code>`,
+            texto: `¿Cuál es el error arquitectónico crítico en este programa embebido?`,
             opciones: [
-                'Falta declarar la función main como "void", ya que los compiladores de microcontroladores no soportan devolver números enteros.',
-                'Al omitir el bucle infinito (ej. while(1)), el programa terminará su ejecución y el contador de programa (PC) leerá memoria inválida, causando un comportamiento indefinido.',
-                'El código se ejecutará perfectamente, haciendo parpadear el LED una sola vez y poniendo automáticamente al CPU en modo de bajo consumo (Sleep).',
-                'El preprocesador marcará un error de sintaxis porque la función _delay_ms() no puede ejecutarse antes del return 0.'
+                `Falta declarar la función main como "void", ya que los compiladores de microcontroladores no soportan devolver números enteros.`,
+                `Al omitir el bucle infinito (ej. while(1)), el programa terminará su ejecución y el contador de programa (PC) leerá memoria inválida, causando un comportamiento indefinido.`,
+                `El código se ejecutará perfectamente, haciendo parpadear el LED una sola vez y poniendo automáticamente al CPU en modo de bajo consumo (Sleep).`,
+                `El preprocesador marcará un error de sintaxis porque la función _delay_ms() no puede ejecutarse antes del return 0.`
             ],
             correcta: 1,
-            retro: 'En microcontroladores NO existe un sistema operativo al cual regresar el "return 0". Si el flujo sale de la función main() por falta de un superloop (while), el microcontrolador seguirá ejecutando direcciones de memoria vacías hasta colapsar.'
+            retro: `En microcontroladores NO existe un sistema operativo al cual regresar el "return 0". Si el flujo sale de la función main() por falta de un superloop (while), el microcontrolador seguirá ejecutando direcciones de memoria vacías hasta colapsar.`
         },
         {
             id: 'q13', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: 'C Embebido Caso 13: Funciones y Paso por Referencia. Se requiere modificar el valor de una variable "temperatura" declarada en el main() desde una función auxiliar.',
-            texto: 'De las siguientes declaraciones, ¿cuál emplea correctamente el paso por referencia (punteros) para alterar la variable original?',
+            contexto: `C Embebido Caso 13: Code Review - Memoria y Alcance (Scope). Tu alumno Mateo quiere que un LED cambie de color (haga una secuencia) cada vez que presiona un botón. Creó una función para contar los clics, pero se frustra porque el contador nunca pasa de 1, sin importar cuántas veces presione el botón. Te muestra este código:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">void actualizar_secuencia() {<br>&nbsp;&nbsp;int contador = 0;<br>&nbsp;&nbsp;if(boton_presionado()) {<br>&nbsp;&nbsp;&nbsp;&nbsp;contador++;<br>&nbsp;&nbsp;}<br>&nbsp;&nbsp;if(contador == 1) prender_rojo();<br>&nbsp;&nbsp;if(contador == 2) prender_verde();<br>}</code>`,
+            texto: `Basado en las reglas de alcance de variables (scope) en C, ¿cuál es el error lógico que le causa "amnesia" al programa y cómo se soluciona?`,
             opciones: [
-                'void modificar(int temp) { temp = 50; }',
-                'void modificar(&int temp) { temp = 50; }',
-                'void modificar(int *temp) { (*temp) = 50; }',
-                'void modificar(int *temp) { *temp = 50; }'
-            ],
-            correcta: 2,
-            retro: 'Usar un puntero (int *temp) y desreferenciarlo con paréntesis (*temp) garantiza que escribamos en la dirección de memoria original de forma segura y sin conflictos de precedencia.'
-        },
-        {
-     
-            id: 'q14', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: 'C Embebido Caso: Code Review - Memoria y Alcance (Scope). Tu alumno Mateo quiere que un LED cambie de color (haga una secuencia) cada vez que presiona un botón. Creó una función para contar los clics, pero se frustra porque el contador nunca pasa de 1, sin importar cuántas veces presione el botón. Te muestra este código:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">void actualizar_secuencia() {<br>&nbsp;&nbsp;int contador = 0;<br>&nbsp;&nbsp;if(boton_presionado()) {<br>&nbsp;&nbsp;&nbsp;&nbsp;contador++;<br>&nbsp;&nbsp;}<br>&nbsp;&nbsp;if(contador == 1) prender_rojo();<br>&nbsp;&nbsp;if(contador == 2) prender_verde();<br>}</code>',
-            texto: 'Basado en las reglas de alcance de variables (scope) en C, ¿cuál es el error lógico que le causa "amnesia" al programa y cómo se soluciona?',
-            opciones: [
-                'El microcontrolador reinicia las variables enteras en cada ciclo del while(1). La solución es usar variables de tipo float.',
-                'La variable "contador" es local. Nace y muere dentro de la función, por lo que se reinicia a 0 en cada llamada. La solución es declararla como Global (fuera de la función) o usar el modificador "static".',
-                'Falta un bucle for() dentro de la función para sumar los clics. El if() solo se ejecuta una vez por programa.',
-                'El caso "prender_verde()" es ignorado porque el hardware restringe el uso de condicionales múltiples sin un "else".'
+                `El microcontrolador reinicia las variables enteras en cada ciclo del while(1). La solución es usar variables de tipo float.`,
+                `La variable "contador" es local. Nace y muere dentro de la función, por lo que se reinicia a 0 en cada llamada. La solución es declararla como Global (fuera de la función) o usar el modificador "static".`,
+                `Falta un bucle for() dentro de la función para sumar los clics. El if() solo se ejecuta una vez por programa.`,
+                `El caso "prender_verde()" es ignorado porque el hardware restringe el uso de condicionales múltiples sin un "else".`
             ],
             correcta: 1,
-            retro: 'Las variables locales (declaradas dentro de una función) se destruyen al salir de ella. Al volver a llamar a "actualizar_secuencia()", la variable se crea de nuevo con valor 0. Para que un contador "recuerde" su valor entre ciclos, debe ser global o estático (static).'
+            retro: `Las variables locales (declaradas dentro de una función) se destruyen al salir de ella. Al volver a llamar a "actualizar_secuencia()", la variable se crea de nuevo con valor 0. Para que un contador "recuerde" su valor entre ciclos, debe ser global o estático (static).`
         },
         {
-           id: 'q15', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: 'C Embebido Caso 15: Code Review - Corrupción de Memoria. Tu alumno Iván está armando un datalogger para guardar lecturas analógicas. Te busca desesperado y te manda mensajes por whats a la 1 am porque, al correr el programa, el microcontrolador hace cosas raras: otras variables cambian sus valores "mágicamente" o el sistema se cuelga. Te muestra este fragmento:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">uint16_t lecturas[5];<br><br>void actualizar_sensores() {<br>&nbsp;&nbsp;for(int i = 1; i <= 5; i++) {<br>&nbsp;&nbsp;&nbsp;&nbsp;lecturas[i] = analogRead(A0);<br>&nbsp;&nbsp;}<br>}</code>',
-            texto: 'Basado en las reglas de memoria de C, ¿cuál es el error técnico que cometió Iván y por qué causa ese comportamiento "curioso"?',
+            id: 'q14', nivel: 2, tipo: 'radio', pts: 2.5,
+            contexto: `C Embebido Caso 14: Code Review - Optimización. Tu alumna Sofía diseña un monitor de batería para un dron. Al compilar su código, se asusta porque el uso de la memoria Flash saltó casi 2KB de golpe y el lazo principal se volvió muy lento. Te pide ayuda y te muestra esta línea de código:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">float voltaje = analogRead(A0) * (5.0 / 1023.0);<br>if (voltaje &lt; 3.2) { activarAlarma(); }</code>`,
+            texto: `Sabiendo que utilizan un microcontrolador de 8 bits, ¿cuál es el origen arquitectónico de este cuello de botella y cómo lo solucionarías?`,
             opciones: [
-                'En C, los arreglos comienzan en el índice 0. Al iterar hasta "i <= 5", Iván intenta escribir en "lecturas[5]", desbordando la memoria reservada (Array Overflow) y sobrescribiendo silenciosamente variables adyacentes en la SRAM.',
-                'La función analogRead() devuelve un valor flotante (float). Al guardarlo en un arreglo tipo uint16_t, el hardware genera una excepción de truncamiento de datos y reinicia el procesador.',
-                'El lazo for() es demasiado rápido para el ADC. El compilador asume que es un bucle bloqueante, provocando que el Watchdog Timer detecte una anomalía y reinicie el sistema.',
-                'Iván olvidó inicializar el arreglo utilizando malloc() dentro de la función, por lo que el sistema escribe en una región protegida de la memoria Flash.'
+                `El ADC no soporta multiplicación directa con constantes. La solución es declarar las variables como globales para evitar la carga en el registro W o Acumulador.`,
+                `Las variables tipo float fragmentan la memoria SRAM dinámica. La solución es hacer un casting directo usando: int voltaje = (int)(analogRead(A0) * 0.0048);`,
+                `El microcontrolador no tiene Unidad de Punto Flotante (FPU) física. El compilador debe inyectar pesadas librerías de software para simular los decimales. La solución es trabajar todo en aritmética entera (ej. usar milivoltios: uint16_t mv = (analogRead(A0) * 5000UL) / 1023;).`,
+                `El error de rendimiento está en el if(), ya que el estándar de C embebido prohíbe comparar números flotantes directamente debido al estándar IEEE-754.`
+            ],
+            correcta: 2,
+            retro: `Las operaciones con "float" y "double" son extremadamente costosas en MCUs básicos. Al no tener FPU (hardware dedicado para decimales), el compilador emula la matemática por software, devorando memoria Flash y ciclos del CPU. Escalar las unidades a enteros (como usar milivoltios en lugar de voltios fraccionarios) es la técnica mecatrónica correcta para mantener el código veloz.`
+        },
+        {
+            id: 'q15', nivel: 2, tipo: 'radio', pts: 2.5,
+            contexto: `C Embebido Caso 15: Code Review - Corrupción de Memoria. Tu alumno Iván está armando un datalogger para guardar lecturas analógicas. Te busca desesperado a la 1 am porque, al correr el programa, el microcontrolador hace cosas raras: otras variables cambian sus valores "mágicamente" o el sistema se cuelga. Te muestra este fragmento:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">uint16_t lecturas[5];<br><br>void actualizar_sensores() {<br>&nbsp;&nbsp;for(int i = 1; i &lt;= 5; i++) {<br>&nbsp;&nbsp;&nbsp;&nbsp;lecturas[i] = analogRead(A0);<br>&nbsp;&nbsp;}<br>}</code>`,
+            texto: `Basado en las reglas de memoria de C, ¿cuál es el error técnico que cometió Iván y por qué causa ese comportamiento "curioso"?`,
+            opciones: [
+                `En C, los arreglos comienzan en el índice 0. Al iterar hasta "i &lt;= 5", Iván intenta escribir en "lecturas[5]", desbordando la memoria reservada (Array Overflow) y sobrescribiendo silenciosamente variables adyacentes en la SRAM.`,
+                `La función analogRead() devuelve un valor flotante (float). Al guardarlo en un arreglo tipo uint16_t, el hardware genera una excepción de truncamiento de datos y reinicia el procesador.`,
+                `El lazo for() es demasiado rápido para el ADC. El compilador asume que es un bucle bloqueante, provocando que el Watchdog Timer detecte una anomalía y reinicie el sistema.`,
+                `Iván olvidó inicializar el arreglo utilizando malloc() dentro de la función, por lo que el sistema escribe en una región protegida de la memoria Flash.`
             ],
             correcta: 0,
-            retro: 'Un arreglo declarado como lecturas[5] solo tiene posiciones del 0 al 4. Acceder al índice 5 significa escribir fuera de los límites del arreglo. En C embebido no hay protección de memoria, por lo que este desbordamiento altera variables vecinas sin generar errores de compilación.'
-    
+            retro: `Un arreglo declarado como lecturas[5] solo tiene posiciones del 0 al 4. Acceder al índice 5 significa escribir fuera de los límites del arreglo. En C embebido no hay protección de memoria, por lo que este desbordamiento altera variables vecinas sin generar errores de compilación.`
         },
         {
             id: 'q16', nivel: 3, tipo: 'codigo', pts: 2.5,
-            contexto: 'C Embebido Caso 16: Operadores a nivel de bits (CLEAR). Las buenas prácticas nos indican usar máscaras para alterar registros. Se desea APAGAR exclusivamente el bit 5 de PORTB.',
-            texto: 'Escriba la combinación exacta del operador de ASIGNACIÓN COMPUESTA y el operador NOT requerida para hacer un CLEAR seguro.',
-            codigoBase: "PORTB ________ (1 << 5);",
+            contexto: `C Embebido Caso 16: Operadores a nivel de bits (CLEAR). Las buenas prácticas nos indican usar máscaras para alterar registros. Se desea APAGAR exclusivamente el bit 5 de PORTB.`,
+            texto: `Escriba la combinación exacta del operador de ASIGNACIÓN COMPUESTA y el operador NOT requerida para hacer un CLEAR seguro.`,
+            codigoBase: `PORTB ________ (1 << 5);`,
             respuestaRegex: /&=\s*~/i,
-            retro: 'El operador AND compuesto (&=) sumado a la inversión de bits (~) crea una máscara donde todos los bits son "1" excepto el bit deseado ("0"), apagándolo sin afectar a los demás.'
+            retro: `El operador AND compuesto (&=) sumado a la inversión de bits (~) crea una máscara donde todos los bits son "1" excepto el bit deseado ("0"), apagándolo sin afectar a los demás.`
         },
         {
             id: 'q17', nivel: 3, tipo: 'codigo', pts: 2.5,
-            contexto: 'C Embebido Caso 17: Operadores a nivel de bits (TOGGLE). Necesita que un LED en el PIN 2 de un puerto cambie de estado (si está encendido, que se apague y viceversa).',
-            texto: 'Complete la línea usando el operador lógico a nivel de bits (ASIGNACIÓN COMPUESTA) para realizar la operación XOR (Toggle).',
-            codigoBase: "PORTB ________ (1 << 2);",
+            contexto: `C Embebido Caso 17: Operadores a nivel de bits (TOGGLE). Necesita que un LED en el PIN 2 de un puerto cambie de estado (si está encendido, que se apague y viceversa).`,
+            texto: `Complete la línea usando el operador lógico a nivel de bits (ASIGNACIÓN COMPUESTA) para realizar la operación XOR (Toggle).`,
+            codigoBase: `PORTB ________ (1 << 2);`,
             respuestaRegex: /\^=/i,
-            retro: 'La función OR Exclusiva (XOR bit a bit, ^=) invierte matemáticamente el estado del bit apuntado: si era 1 lo hace 0, y si era 0 lo hace 1.'
+            retro: `La función OR Exclusiva (XOR bit a bit, ^=) invierte matemáticamente el estado del bit apuntado: si era 1 lo hace 0, y si era 0 lo hace 1.`
         },
         {
             id: 'q18', nivel: 3, tipo: 'codigo', pts: 2.5,
-            contexto: 'C Embebido Caso 18: Estructuras y Punteros. Tiene declarada una estructura Sensor_t y una función que recibe un puntero a dicha estructura: Sensor_t *ps = &sensor1;',
-            texto: 'Escriba el operador en C necesario para acceder al miembro "temperatura" a través del PUNTERO ps.',
-            codigoBase: "ps________temperatura = 26.0;",
+            contexto: `C Embebido Caso 18: Estructuras y Punteros. Tiene declarada una estructura Sensor_t y una función que recibe un puntero a dicha estructura: Sensor_t *ps = &sensor1;`,
+            texto: `Escriba el operador en C necesario para acceder al miembro "temperatura" a través del PUNTERO ps.`,
+            codigoBase: `ps________temperatura = 26.0;`,
             respuestaRegex: /->/,
-            retro: 'En C, al utilizar un puntero que apunta a una estructura (struct), el operador de acceso indirecto obligatorio es la flecha (->).'
+            retro: `En C, al utilizar un puntero que apunta a una estructura (struct), el operador de acceso indirecto obligatorio es la flecha (->).`
         },
         {
             id: 'q19', nivel: 3, tipo: 'radio', pts: 2.5,
-            contexto: 'C Emebebido Caso 19: Diseño Orientado a Objetos (OOP) y Hardware. Estás desarrollando una librería en C++ para Arduino que controla un brazo robótico industrial. Creas la clase "BrazoRobotico" que incluye atributos internos como "anguloBase" y "anguloHombro", y un método "moverA(int grados)" que calcula la cinemática, ajusta la velocidad y mueve los servos de forma segura.',
-            texto: 'Al estructurar la clase, ¿por qué es una decisión importante de ingeniería declarar las variables de los ángulos estrictamente como "private" en lugar de "public"?',
+            contexto: `C Emebebido Caso 19: Diseño Orientado a Objetos (OOP) y Hardware. Estás desarrollando una librería en C++ para Arduino que controla un brazo robótico industrial. Creas la clase "BrazoRobotico" que incluye atributos internos como "anguloBase" y "anguloHombro", y un método "moverA(int grados)" que calcula la cinemática, ajusta la velocidad y mueve los servos de forma segura.`,
+            texto: `Al estructurar la clase, ¿por qué es una decisión importante de ingeniería declarar las variables de los ángulos estrictamente como "private" en lugar de "public"?`,
             opciones: [
-                'Para ahorrar memoria SRAM, ya que los atributos privados son compactados y optimizados automáticamente por el compilador AVR-G++.',
-                'Porque el framework de Arduino no soporta atributos públicos dentro de las clases, restringiendo el nivel "public" únicamente a las funciones (métodos).',
-                'Para proteger la integridad física de la máquina (Encapsulamiento): obliga a que el código en el loop() pase obligatoriamente por la lógica de validación del método "moverA()", evitando asignaciones directas que causen colisiones mecánicas.',
-                'Para permitir que las variables puedan ser compartidas automáticamente con las Rutinas de Servicio de Interrupción (ISR) del Timer1.'
+                `Para ahorrar memoria SRAM, ya que los atributos privados son compactados y optimizados automáticamente por el compilador AVR-G++.`,
+                `Porque el framework de Arduino no soporta atributos públicos dentro de las clases, restringiendo el nivel "public" únicamente a las funciones (métodos).`,
+                `Para proteger la integridad física de la máquina (Encapsulamiento): obliga a que el código en el loop() pase obligatoriamente por la lógica de validación del método "moverA()", evitando asignaciones directas que causen colisiones mecánicas.`,
+                `Para permitir que las variables puedan ser compartidas automáticamente con las Rutinas de Servicio de Interrupción (ISR) del Timer1.`
             ],
             correcta: 2,
-            retro: 'El encapsulamiento (private) protege el hardware. Si las variables fueran públicas, un programador podría escribir "brazo.anguloBase = 5000;" en el loop(), saltándose las validaciones físicas y destruyendo los engranes del motor. Al ser privadas, solo la clase puede alterarlas de forma controlada.'
+            retro: `El encapsulamiento (private) protege el hardware. Si las variables fueran públicas, un programador podría escribir "brazo.anguloBase = 5000;" en el loop(), saltándose las validaciones físicas y destruyendo los engranes del motor. Al ser privadas, solo la clase puede alterarlas de forma controlada.`
         },
         {
           id: 'q20', nivel: 3, tipo: 'radio', pts: 2.5,
-            contexto: 'C Emebido Caso 20: Eficiencia de Memoria y Punteros. Diseñas el programa de un dron de exploración. El sistema agrupa los datos de vuelo (Acelerómetro, Giroscopio, GPS, Altitud) en un "struct" masivo de 64 bytes. Debes pasar este paquete de datos a la función matemática "procesarTelemetria()" a una velocidad de 100 veces por segundo.',
-            texto: 'Como ingeniero a cargo del código, ¿cuál es la decisión arquitectónica correcta para enviar la estructura a la función sin colapsar el microcontrolador y por qué?',
+            contexto: `C Emebido Caso 20: Eficiencia de Memoria y Punteros. Diseñas el programa de un dron de exploración. El sistema agrupa los datos de vuelo (Acelerómetro, Giroscopio, GPS, Altitud) en un "struct" masivo de 64 bytes. Debes pasar este paquete de datos a la función matemática "procesarTelemetria()" a una velocidad de 100 veces por segundo.`,
+            texto: `Como ingeniero a cargo del código, ¿cuál es la decisión arquitectónica correcta para enviar la estructura a la función sin colapsar el microcontrolador y por qué?`,
             opciones: [
-                'Paso por Valor: llamar a "procesarTelemetria(DatosVuelo d)". Esto es más seguro porque garantiza que la función trabaje con una copia aislada y no corrompa los sensores originales.',
-                'Paso por Referencia: llamar a "procesarTelemetria(DatosVuelo *d)". Esto envía únicamente la dirección de memoria del "struct" (ocupando solo 2 bytes en la pila), evitando la clonación masiva de datos y previniendo un Stack Overflow.',
-                'Asignación Dinámica: declarar la estructura con "malloc()" antes de enviarla a la función, asegurando que los 64 bytes se almacenen en el Heap en lugar del Stack.',
-                'Fragmentación: dividir el "struct" de 64 bytes en 64 variables globales individuales y llamar a la función sin parámetros para acelerar el procesamiento de la CPU.'
+                `Paso por Valor: llamar a "procesarTelemetria(DatosVuelo d)". Esto es más seguro porque garantiza que la función trabaje con una copia aislada y no corrompa los sensores originales.`,
+                `Paso por Referencia: llamar a "procesarTelemetria(DatosVuelo *d)". Esto envía únicamente la dirección de memoria del "struct" (ocupando solo 2 bytes en la pila), evitando la clonación masiva de datos y previniendo un Stack Overflow.`,
+                `Asignación Dinámica: declarar la estructura con "malloc()" antes de enviarla a la función, asegurando que los 64 bytes se almacenen en el Heap en lugar del Stack.`,
+                `Fragmentación: dividir el "struct" de 64 bytes en 64 variables globales individuales y llamar a la función sin parámetros para acelerar el procesamiento de la CPU.`
             ],
             correcta: 1,
-            retro: 'En sistemas embebidos con poca memoria SRAM, pasar grandes estructuras por valor crea copias masivas en la pila (Stack). Repetir esto a alta velocidad provocará rápidamente un colapso del sistema (Stack Overflow). Usar punteros (paso por referencia) es la única vía profesional y eficiente, ya que solo se transfiere un mapa que indica dónde está la información.'
+            retro: `En sistemas embebidos con poca memoria SRAM, pasar grandes estructuras por valor crea copias masivas en la pila (Stack). Repetir esto a alta velocidad provocará rápidamente un colapso del sistema (Stack Overflow). Usar punteros (paso por referencia) es la única vía profesional y eficiente, ya que solo se transfiere un mapa que indica dónde está la información.`
         }
     ];
 
