@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Examen Ordinario - Microcontroladores</title>
+    <title>Examen Ordinario - Microcontroladores (PIC & Arduino)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -19,6 +19,7 @@
             .no-print { display: none !important; }
             .print-only { display: block !important; }
             .container { box-shadow: none; max-width: 100%; padding: 0; }
+            #vista-reporte { padding-top: 0 !important; margin-top: 0 !important; }
         }
     </style>
 </head>
@@ -31,7 +32,7 @@
             
             <div class="text-center mb-8 border-b pb-4">
                 <h1 class="text-2xl md:text-3xl font-black text-indigo-900 tracking-tight">Evaluación Ordinaria: Microcontroladores</h1>
-                <p class="text-gray-500 mt-2 font-medium">Arquitectura PIC18F4550 (ASM) y Firmware en C Embebido</p>
+                <p class="text-gray-500 mt-2 font-medium">Arquitectura PIC18F4550 y Ecosistema Arduino (C Embebido)</p>
                 <div id="examen-meta" class="hidden mt-4 flex flex-wrap justify-center gap-4 md:gap-6 text-sm font-bold text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200">
                     <span id="display-serie"><i class="fas fa-file-alt text-indigo-500"></i> Serie: -</span>
                     <span id="display-time"><i class="fas fa-clock text-green-500"></i> Tiempo: 00:00</span>
@@ -46,9 +47,9 @@
                         <div class="ml-4">
                             <p class="text-sm text-red-800 leading-relaxed">
                                 <strong>ATENCIÓN - REGLAS DEL EXAMEN ORDINARIO:</strong><br>
-                                1. Esta prueba evalúa competencias avanzadas y tiene una curva de <strong>dificultad progresiva</strong>.<br>
+                                1. Esta prueba evalúa competencias de ingeniería y diseño en sistemas embebidos.<br>
                                 2. El sistema anti-trampas está activo (Detección de visibilidad de pestaña).<br>
-                                3. Consta de 10 casos de estudio con valor de <strong>5 puntos cada uno (Escala de 50 puntos)</strong>.
+                                3. Consta de <strong>20 casos de estudio</strong> con valor de <strong>2.5 puntos cada uno (Escala total: 50 pts)</strong>.
                             </p>
                         </div>
                     </div>
@@ -102,117 +103,220 @@ const app = (function() {
         preguntasActivas: []
     };
 
-    // BANCO DE PREGUNTAS (ESCALA: 50 PUNTOS, DIFICULTAD PROGRESIVA, HARDWARE PIC/C)
+    // BANCO DE 20 PREGUNTAS (ESCALA: 50 PUNTOS, 2.5 PTS CADA UNA)
     const bancoMaestro = [
-        // --- NIVEL 1: Recordar y Comprender (10 pts) ---
+        // --- BLOQUE 1: PIC18F4550 & ENSAMBLADOR/REGISTROS ---
         {
-            id: 'q1', nivel: 1, tipo: 'radio', pts: 5,
-            contexto: 'Caso 1: Conversor ADC y Registros Base. En el firmware de un sistema biométrico que lee la temperatura analógica en RA0, se observa la rutina de inicialización: MOVLW B\'00001111\' seguida de MOVWF ADCON1.',
-            texto: '¿Qué efecto crítico y permanente tiene esta configuración específica del registro ADCON1 en el PIC18F4550?',
+            id: 'q1', nivel: 1, tipo: 'radio', pts: 2.5,
+            contexto: 'PIC/C Caso 1: Conversor ADC y Registros Base. En el firmware de un sistema biométrico que lee la temperatura analógica en RA0, se observa la rutina: MOVLW B\'00001111\' seguida de MOVWF ADCON1.',
+            texto: '¿Qué efecto crítico tiene esta configuración del registro ADCON1 en el PIC18F4550?',
             opciones: [
-                'Enciende inmediatamente el conversor analógico-digital e inicia el muestreo (GO/DONE).',
-                'Configura los 13 canales del microcontrolador estrictamente como E/S digitales, deshabilitando la lectura de sensores analógicos.',
-                'Justifica la lectura de 10 bits del ADC hacia la izquierda en el registro ADRESH.',
-                'Habilita voltajes de referencia externos (VREF+ y VREF-) para mayor precisión.'
+                'Inicia el muestreo analógico (GO/DONE).',
+                'Configura todos los canales multiplexados estrictamente como I/O digitales, deshabilitando la lectura analógica.',
+                'Justifica la lectura de 10 bits del ADC hacia la izquierda en ADRESH.',
+                'Habilita voltajes de referencia externos.'
             ],
             correcta: 1,
-            retro: 'La asignación de 0x0F (B\'00001111\') a los bits PCFG de ADCON1 configura todos los pines multiplexados como puertos I/O digitales, inhabilitando las lecturas analógicas del ADC.'
+            retro: 'La asignación de 0x0F a los bits PCFG de ADCON1 configura todos los pines como puertos digitales, inhabilitando las lecturas del ADC.'
         },
         {
-            id: 'q2', nivel: 1, tipo: 'radio', pts: 5,
-            contexto: 'Caso 2: Gestión de Banderas de Interrupción. Un paro de emergencia industrial está conectado al pin de interrupción externa INT0. Al escribir el código, el ingeniero olvidó colocar la instrucción "BCF INTCON, INT0IF" antes del "RETFIE".',
-            texto: '¿Cuál será el comportamiento del hardware del microcontrolador al salir de la rutina de interrupción sin limpiar dicha bandera?',
+            id: 'q2', nivel: 1, tipo: 'radio', pts: 2.5,
+            contexto: 'PIC Caso 2: Banderas de Interrupción. Un paro de emergencia está en INT0. El ingeniero olvidó colocar "BCF INTCON, INT0IF" antes del "RETFIE".',
+            texto: '¿Cuál será el comportamiento del hardware al salir de la rutina de interrupción?',
             opciones: [
-                'El sistema reanudará el lazo principal (Main) ignorando futuras emergencias.',
-                'Se generará un reinicio del sistema (Reset) por protección del Watchdog Timer.',
-                'Entrará en un bucle infinito ("Deadlock"): regresará inmediatamente a la rutina de interrupción porque el hardware cree que el evento de emergencia sigue ocurriendo.',
-                'El registro GIE (Global Interrupt Enable) permanecerá apagado permanentemente.'
-            ],
-            correcta: 2,
-            retro: 'Si la bandera de interrupción no se limpia por software (BCF), la condición de disparo permanece activa en los registros. Al ejecutar RETFIE, el sistema salta de inmediato de regreso al vector de interrupción.'
-        },
-
-        // --- NIVEL 2: Aplicar y Analizar (15 pts) ---
-        {
-            id: 'q3', nivel: 2, tipo: 'radio', pts: 5,
-            contexto: 'Caso 3: Manejo de Puertos (Efecto Read-Modify-Write). Un motor paso a paso de alta precisión requiere conmutar los pines del Puerto D a máxima velocidad. Se usa BSF y BCF directamente sobre PORTD, pero el motor "tiembla" y se saltan pasos aleatoriamente debido a las capacitancias parásitas de los pines.',
-            texto: 'Para solucionar este error de hardware en la familia PIC18, ¿qué registro debe utilizarse en lugar de PORTD para realizar las conmutaciones a alta velocidad?',
-            opciones: [
-                'Utilizar el registro TRISD para forzar el estado lógico del pin.',
-                'Escribir directamente sobre el Data Latch utilizando el registro LATD.',
-                'Modificar el bit asociado en el registro INTCON.',
-                'Insertar retardos de 5ms entre cada instrucción BSF y BCF usando TMR0.'
+                'El sistema reanudará el lazo principal ignorando futuras emergencias.',
+                'Entrará en un bucle infinito ("Deadlock"): regresará inmediatamente a la ISR porque el hardware cree que el evento sigue ocurriendo.',
+                'Se generará un reinicio del sistema por el Watchdog.',
+                'El registro GIE se apagará permanentemente.'
             ],
             correcta: 1,
-            retro: 'Escribir en el registro LAT (Latch) evita el problema "Read-Modify-Write", ya que se lee y modifica el valor almacenado internamente en lugar de leer el voltaje físico inestable del pin.'
+            retro: 'Si la bandera no se limpia por software (BCF), la condición de disparo sigue activa. Al ejecutar RETFIE, el sistema salta de inmediato de regreso a la interrupción.'
         },
         {
-            id: 'q4', nivel: 2, tipo: 'radio', pts: 5,
-            contexto: 'Caso 4: Timer 0 de 16 bits y Buffers. Para calcular el tiempo exacto de infusión de fluidos, usted configura el Timer 0 en modo de 16 bits. El manual del fabricante (Datasheet) indica una regla de oro sobre cómo cargar los registros TMR0H (High) y TMR0L (Low).',
-            texto: '¿Qué sucede a nivel de arquitectura si usted comete el error de cargar primero el byte en TMR0L y después el byte en TMR0H?',
+            id: 'q3', nivel: 2, tipo: 'radio', pts: 2.5,
+            contexto: 'PIC Caso 3: Manejo de Puertos. Un motor de alta precisión conmutando pines en PORTD "tiembla" por el efecto Read-Modify-Write.',
+            texto: '¿Qué registro debe utilizarse en lugar de PORTD para solucionar esto en C/Ensamblador?',
             opciones: [
-                'El byte alto (TMR0H) se quedará en un buffer de sombra y no se actualizará en el contador real hasta que se vuelva a escribir en TMR0L, arruinando la temporización.',
-                'El hardware del Timer0 invertirá automáticamente los bytes (Little-Endian a Big-Endian).',
+                'El registro TRISD.',
+                'El Data Latch utilizando el registro LATD.',
+                'El registro INTCON.',
+                'El Timer 0 para añadir retardos.'
+            ],
+            correcta: 1,
+            retro: 'Escribir en el registro LAT (Latch) evita el problema "Read-Modify-Write", ya que modifica el valor interno en lugar de leer el voltaje físico del pin.'
+        },
+        {
+            id: 'q4', nivel: 2, tipo: 'radio', pts: 2.5,
+            contexto: 'PIC Caso 4: Timer 0 de 16 bits. El manual indica una regla estricta sobre cómo cargar TMR0H y TMR0L.',
+            texto: '¿Qué sucede si carga primero el byte en TMR0L y después en TMR0H?',
+            opciones: [
+                'El byte alto (TMR0H) se quedará en un buffer y no se actualizará en el contador real hasta volver a escribir en TMR0L.',
+                'El hardware invertirá automáticamente los bytes.',
                 'El bit de desbordamiento (TMR0IF) se disparará instantáneamente.',
-                'Ambos registros se cargarán correctamente, el orden de escritura es irrelevante.'
+                'Ambos registros se cargarán correctamente.'
             ],
             correcta: 0,
-            retro: 'En modo de 16 bits, el registro TMR0H no es físico, es un buffer. El contador completo de 16 bits solo se actualiza en el mismo instante en el que se escribe físicamente el registro TMR0L. Siempre debe escribirse High y luego Low.'
+            retro: 'En 16 bits, TMR0H es un buffer. El contador completo solo se actualiza al escribir TMR0L. Siempre debe escribirse High primero y luego Low.'
         },
         {
-            id: 'q5', nivel: 2, tipo: 'radio', pts: 5,
-            contexto: 'Caso 5: Técnicas de Polling y Mnemotécnicos. En un sistema sin interrupciones, usted espera un evento usando la instrucción de ensamblador "BTFSS INTCON, TMR0IF" seguida de un "GOTO LOOP".',
-            texto: 'A nivel de lógica estructural (Firmware C / Arduino), ¿qué bloque de control representa con exactitud la técnica de hardware que implementan estas dos instrucciones de Ensamblador?',
+            id: 'q5', nivel: 2, tipo: 'radio', pts: 2.5,
+            contexto: 'PIC Caso 5: Polling. Usted espera un evento usando "BTFSS INTCON, TMR0IF" seguida de "GOTO LOOP".',
+            texto: 'En C (Estructuras de Control), ¿qué instrucción representa el equivalente a esta técnica de hardware bloqueante?',
             opciones: [
-                'if (INTCONbits.TMR0IF == 1) { return 0; }',
-                'switch (INTCONbits.TMR0IF) { case 0: break; }',
-                'for(int i = 0; i < 255; i++) { delay(1); }',
-                'while (INTCONbits.TMR0IF == 0) { /* Bucle de espera bloqueante */ }'
+                'if (INTCONbits.TMR0IF == 1)',
+                'switch (INTCONbits.TMR0IF)',
+                'for(int i = 0; i < 255; i++)',
+                'while (INTCONbits.TMR0IF == 0) { }'
             ],
             correcta: 3,
-            retro: 'El Polling (BTFSS + GOTO) equivale estructuralmente a un bucle "while" bloqueante, donde el microprocesador se queda atascado haciendo nada hasta que la bandera o pin físico cambie de estado a 1 lógico.'
+            retro: 'El Polling (BTFSS + GOTO) equivale a un bucle "while" vacío y bloqueante, donde el CPU se atasca hasta que la bandera cambie a 1.'
         },
-
-        // --- NIVEL 3: Evaluar y Crear - Retos de Código Puro (25 pts) ---
         {
-            id: 'q6', nivel: 3, tipo: 'codigo', pts: 5,
-            contexto: 'Caso 6: Interrupciones y Vectores Absolutos. Para que una alarma crítica funcione, el compilador debe ubicar la subrutina "HighInt" exactamente en la dirección física que el PIC18 consulta cuando el bit IPEN = 1 y ocurre un evento.',
-            texto: 'Escriba la directiva de Ensamblador (3 letras) que obliga al compilador a iniciar la colocación de código en la dirección de Memoria de Programa 0x0008.',
+            id: 'q6', nivel: 3, tipo: 'codigo', pts: 2.5,
+            contexto: 'PIC Caso 6: Vectores Absolutos. El compilador debe ubicar la subrutina "HighInt" exactamente en el vector de Alta Prioridad.',
+            texto: 'Escriba la directiva de Ensamblador (3 letras) para iniciar el código en la memoria 0x0008.',
             codigoBase: "________ 0x0008\nbra HighInt",
             respuestaRegex: /org/i,
-            retro: 'La directiva ORG (Origin) establece la dirección de memoria absoluta del código que la sucede, fundamental para alinear las rutinas con los Vectores de Interrupción del hardware.'
+            retro: 'La directiva ORG (Origin) establece la dirección de memoria absoluta del código.'
         },
         {
-            id: 'q7', nivel: 3, tipo: 'codigo', pts: 5,
-            contexto: 'Caso 7: Conversión ADC de Precisión. Está leyendo un joystick analógico y necesita los 10 bits de resolución. Configura el bit ADFM (en ADCON2) para que el resultado esté justificado a la DERECHA.',
-            texto: 'Si los 8 bits menos significativos caen en ADRESL, escriba el nombre completo del registro del PIC18F que almacena los 2 bits más significativos restantes.',
+            id: 'q7', nivel: 3, tipo: 'codigo', pts: 2.5,
+            contexto: 'PIC Caso 7: ADC Justificado. Configura ADFM=1 (Justificado a la derecha) para leer 10 bits.',
+            texto: 'Si los 8 bits bajos están en ADRESL, escriba el registro del PIC18F que almacena los 2 bits más significativos.',
             codigoBase: "movff ________, var_alta\nmovff ADRESL, var_baja",
             respuestaRegex: /adresh/i,
-            retro: 'Al justificar a la derecha (ADFM = 1), los 8 bits inferiores ocupan todo el registro ADRESL (A/D Result Low), mientras que los 2 bits más significativos se acomodan en el registro ADRESH (A/D Result High).'
+            retro: 'Al justificar a la derecha, los 2 bits superiores se acomodan en el registro ADRESH.'
         },
         {
-            id: 'q8', nivel: 3, tipo: 'codigo', pts: 5,
-            contexto: 'Caso 8: Operadores a nivel de bits en C (Bitwise). Trabaja en Firmware C directo a registros. Por seguridad, debe configurar EXCLUSIVAMENTE el bit 3 del puerto D como ENTRADA digital ("1" en PIC), sin sobreescribir la configuración del motor en los otros pines.',
-            texto: 'Complete la línea de código utilizando el operador de ASIGNACIÓN COMPUESTA necesario para realizar una máscara OR (poner a "1") sobre el bit 3 del registro TRISD.',
+            id: 'q8', nivel: 3, tipo: 'codigo', pts: 2.5,
+            contexto: 'PIC/C Caso 8: Bitwise Seguro. Configurar EXCLUSIVAMENTE el bit 3 de TRISD como ENTRADA (1), sin sobreescribir el resto del byte.',
+            texto: 'Complete con el operador de ASIGNACIÓN COMPUESTA para realizar una máscara OR.',
             codigoBase: "TRISD ________ (1 << 3);",
             respuestaRegex: /\|=/i,
-            retro: 'El operador OR compuesto (|=) permite forzar bits específicos a estado "1" lógico, manteniendo intacto el estado del resto del byte (Read-Modify-Write seguro por software).'
+            retro: 'El operador OR compuesto (|=) fuerza un bit a "1" manteniendo intacto el resto (Read-Modify-Write por software).'
         },
         {
-            id: 'q9', nivel: 3, tipo: 'codigo', pts: 5,
-            contexto: 'Caso 9: Ensamblador, Constantes y Acumulador. Durante el bloque de "Inicialización de Periféricos", debe asegurarse de que el Puerto A comience apagado (0 Volts en todas sus salidas).',
-            texto: 'Antes de mover los datos al registro PORTA con "MOVWF", escriba el mnemotécnico (5 letras) necesario para cargar el valor literal 0x00 directamente en el registro de trabajo (WREG).',
+            id: 'q9', nivel: 3, tipo: 'codigo', pts: 2.5,
+            contexto: 'PIC Caso 9: Acumulador. Desea apagar el Puerto A.',
+            texto: 'Antes de usar MOVWF, escriba el mnemotécnico para cargar el valor literal 0x00 en el registro de trabajo (WREG).',
             codigoBase: "________ 0x00\nMOVWF PORTA",
             respuestaRegex: /movlw/i,
-            retro: 'En la arquitectura de Microchip, no se puede escribir un valor directamente en un puerto. Primero debe moverse la constante al acumulador interno mediante MOVLW (Move Literal to W).'
+            retro: 'MOVLW (Move Literal to W) carga una constante en el acumulador antes de pasarla a un puerto.'
         },
         {
-            id: 'q10', nivel: 3, tipo: 'codigo', pts: 5,
-            contexto: 'Caso 10: Temporizadores (Clock Source). Para el sistema de semáforo, el Timer 0 debe contar basándose en el oscilador interno del CPU (Fosc/4) y no recibir pulsos del pin externo T0CKI.',
-            texto: 'Escriba el mnemotécnico de Bit en ensamblador (3 letras) necesario para LIMPIAR (apagar o poner en "0") el bit T0CS dentro del registro de control T0CON.',
+            id: 'q10', nivel: 3, tipo: 'codigo', pts: 2.5,
+            contexto: 'PIC Caso 10: T0CON Clock Source. El Timer 0 debe usar el oscilador interno, no el pin T0CKI.',
+            texto: 'Escriba el mnemotécnico (3 letras) para LIMPIAR (poner en 0) el bit T0CS.',
             codigoBase: "________ T0CON, T0CS",
             respuestaRegex: /bcf/i,
-            retro: 'BCF (Bit Clear File) es el comando ensamblador que pone a 0 un bit individual. Al limpiar el bit T0CS, forzamos al Timer 0 a funcionar como Temporizador interno en lugar de Contador externo.'
+            retro: 'BCF (Bit Clear File) limpia el bit T0CS, forzando al Timer 0 a usar el reloj interno.'
+        },
+
+        // --- BLOQUE 2: ARDUINO, MEMORIA Y C EMBEBIDO ---
+        {
+            id: 'q11', nivel: 1, tipo: 'radio', pts: 2.5,
+            contexto: 'Arduino Caso 11: Gestión de Cadenas. Un alumno usa continuamente objetos de tipo "String mensaje = String(temperatura);" dentro del loop() en un Arduino Uno.',
+            texto: 'Según las buenas prácticas de embebidos (No usar malloc), ¿por qué esto es un error grave de diseño?',
+            opciones: [
+                'Porque la clase String no permite ser enviada por el puerto Serial.print().',
+                'Porque genera fragmentación dinámica en la memoria Heap (Stack Collision), causando que el microcontrolador se congele tras horas de uso.',
+                'Porque String requiere incluir bibliotecas externas que pesan más de 32KB.',
+                'Porque convierte la variable en un formato de coma flotante perdiendo precisión.'
+            ],
+            correcta: 1,
+            retro: 'En AVR/Arduino, la clase String usa asignación dinámica (malloc/realloc). Como no hay recolector de basura avanzado ni MMU, la RAM se fragmenta rápidamente hasta colapsar el sistema. Se deben usar arreglos de char (C-Strings).'
+        },
+        {
+            id: 'q12', nivel: 1, tipo: 'radio', pts: 2.5,
+            contexto: 'Arduino Caso 12: Temporización (millis). Un temporizador falla después de aproximadamente 32 segundos de encender el equipo. El código es: int tiempoActual = millis();',
+            texto: 'Basado en los tipos de datos en C, ¿cuál es la causa matemática del fallo?',
+            opciones: [
+                'La función millis() se detiene por el desbordamiento del Timer0 a los 32 segundos.',
+                'El tipo de dato "int" en AVR es de 16 bits con signo (máx 32,767). Al llegar a 32,767 milisegundos ocurre un desbordamiento a valores negativos.',
+                'Debe declararse la variable como flotante (float) para capturar los milisegundos con precisión decimal.',
+                'Se debe utilizar delay() en lugar de millis() para evitar el desbordamiento de RAM.'
+            ],
+            correcta: 1,
+            retro: 'millis() devuelve un entero sin signo de 32 bits (uint32_t / unsigned long). Al guardarlo en un "int" de 16 bits, la variable se desborda a los 32.7 segundos (32,767 ms).'
+        },
+        {
+            id: 'q13', nivel: 2, tipo: 'radio', pts: 2.5,
+            contexto: 'Arduino Caso 13: Overhead de Punto Flotante. En un controlador de temperatura, el código hace: float temp = analogRead(A0) * 0.488; provocando que el lazo de control se vuelva lento.',
+            texto: 'Sabiendo que los MCUs de 8 bits carecen de Unidad de Punto Flotante (FPU), ¿cómo optimiza esta operación usando aritmética entera?',
+            opciones: [
+                'int temp = analogRead(A0) * 0; // Se redondea el flotante a 0.',
+                'Cambiar la arquitectura del programa para usar interrupciones en lugar del cálculo.',
+                'int temp = (analogRead(A0) * 488) / 1000; // Multiplicar por entero grande y luego dividir.',
+                'Hacer un casting directo: int temp = (int)(analogRead(A0) * 0.488);'
+            ],
+            correcta: 2,
+            retro: 'La aritmética entera multiplicando por escalares (x488 / 1000) evita el masivo consumo de ciclos de reloj que requiere el compilador para emular las matemáticas de punto flotante (float) por software.'
+        },
+        {
+            id: 'q14', nivel: 2, tipo: 'radio', pts: 2.5,
+            contexto: 'Arduino Caso 14: Variables Compartidas e ISR. Usted usa attachInterrupt() para contar pulsos de un encoder. La variable "contador" se modifica en la ISR, pero el loop() principal imprime siempre 0.',
+            texto: '¿Qué modificador de acceso olvidó colocar en la declaración de la variable para evitar que el compilador la optimice en el registro caché?',
+            opciones: [
+                'extern',
+                'static',
+                'const',
+                'volatile'
+            ],
+            correcta: 3,
+            retro: 'El cualificador "volatile" obliga al compilador a leer la variable físicamente desde la RAM en cada iteración, previniendo que asuma falsamente que su valor no ha cambiado fuera del flujo principal (en la ISR).'
+        },
+        {
+            id: 'q15', nivel: 2, tipo: 'radio', pts: 2.5,
+            contexto: 'Arduino Caso 15: Envío de Punteros Estructurados. Un Arduino lee un GPS y guarda {latitud, longitud, altitud} en un "struct" (12 bytes). Desea enviar la trama completa por I2C.',
+            texto: '¿Cuál es la técnica de punteros (Casting) recomendada para serializar esta estructura y enviarla byte por byte con un simple bucle for()?',
+            opciones: [
+                'Pasarla por valor a una función que convierta cada elemento a String y concatenarlos.',
+                'Crear un puntero uint8_t* que apunte a la dirección base de la estructura: uint8_t* ptr = (uint8_t*)&miGPS;',
+                'No es posible, las estructuras de C no tienen direcciones de memoria contiguas.',
+                'Usar la función sizeof() para romper la estructura en partes lógicas.'
+            ],
+            correcta: 1,
+            retro: 'En C, las estructuras residen en memoria contigua. Forzar (Casting) la dirección a un puntero de bytes (uint8_t*) permite recorrer la memoria secuencialmente, extrayendo el paquete binario perfecto para I2C o UART.'
+        },
+        {
+            id: 'q16', nivel: 3, tipo: 'codigo', pts: 2.5,
+            contexto: 'Arduino Caso 16: Mapeo Bit a Bit ultra rápido. analogRead() devuelve 10 bits (0-1023), pero analogWrite() exige 8 bits (0-255). La función map() de Arduino usa división matemática que consume mucho tiempo.',
+            texto: 'Escriba el operador de BITS necesario para dividir rápidamente entre 4, desplazando la lectura 2 posiciones lógicas a la derecha.',
+            codigoBase: "uint8_t pwmVal = analogRead(A0) ________ 2;",
+            respuestaRegex: />>/,
+            retro: 'El desplazamiento de bits a la derecha (>>) divide binariamente. Shiftear 2 bits "tira" los dos bits menos significativos, transformando de facto 10 bits a 8 bits de forma ultrarrápida.'
+        },
+        {
+            id: 'q17', nivel: 3, tipo: 'codigo', pts: 2.5,
+            contexto: 'Arduino Caso 17: Acceso a Registros AVR. Para configurar el pin D2 como entrada con Pull-up sin usar pinMode(), usted limpia el bit en DDRD y debe escribir un "1" lógico en el registro PORTD (Bit 2).',
+            texto: 'Complete la operación a nivel de bits (ASIGNACIÓN COMPUESTA) requerida para inyectar el "1" sin alterar el resto de PORTD.',
+            codigoBase: "PORTD ________ (1 << 2);",
+            respuestaRegex: /\|=/i,
+            retro: 'En la arquitectura de Arduino (AVR), escribir un "1" en el registro PORTX de un pin configurado como entrada (DDRX=0) enciende físicamente la resistencia interna de Pull-up.'
+        },
+        {
+            id: 'q18', nivel: 3, tipo: 'codigo', pts: 2.5,
+            contexto: 'Arduino Caso 18: Estructuras Avanzadas. Se recibe un puntero a una estructura Sensor_t en una función: void procesar(Sensor_t *ptrSensor).',
+            texto: 'Escriba el operador de C requerido para acceder a la variable "temperatura" a través de dicho puntero.',
+            codigoBase: "if (ptrSensor________temperatura > 30) {",
+            respuestaRegex: /->/,
+            retro: 'Cuando se tiene un puntero a una estructura, el acceso a sus campos se realiza obligatoriamente mediante el operador flecha (->).'
+        },
+        {
+            id: 'q19', nivel: 3, tipo: 'codigo', pts: 2.5,
+            contexto: 'Arduino Caso 19: Tipos de Datos de Ancho Fijo. Como se indica en las buenas prácticas del documento, al declarar un contador de 16 bits sin signo no debemos usar "int", sino la librería stdint.h.',
+            texto: 'Escriba el tipo de dato técnico estándar de 16 bits sin signo.',
+            codigoBase: "________ contadorTicks = 0;",
+            respuestaRegex: /uint16_t/i,
+            retro: 'El tipo uint16_t garantiza que la variable ocupe exactamente 2 bytes (0 a 65535) independientemente de la plataforma, crucial para la portabilidad del código.'
+        },
+        {
+            id: 'q20', nivel: 3, tipo: 'codigo', pts: 2.5,
+            contexto: 'Arduino Caso 20: Preprocesador y Modularidad. Para evitar que la biblioteca "Motor.h" se compile múltiples veces causando errores de redefinición de variables...',
+            texto: 'Escriba la directiva de compilación condicional que evalúa "Si NO está definido" para crear una guarda de cabecera (Header Guard).',
+            codigoBase: "________ MOTOR_H\n#define MOTOR_H\n// Código\n#endif",
+            respuestaRegex: /#ifndef/i,
+            retro: 'La directiva #ifndef (If Not Defined) comprueba si la etiqueta no existe; si es el caso, la define y compila el bloque, previniendo inclusiones recursivas de la librería.'
         }
     ];
 
@@ -234,7 +338,7 @@ const app = (function() {
         state.preguntasActivas.forEach((q, index) => {
             const nivelBadge = q.nivel === 1 ? '<span class="bg-blue-100 text-blue-900 text-xs px-3 py-1 rounded-full border border-blue-300 font-black tracking-widest"><i class="fas fa-brain mr-1"></i> NIVEL 1</span>' : 
                                q.nivel === 2 ? '<span class="bg-yellow-100 text-yellow-900 text-xs px-3 py-1 rounded-full border border-yellow-400 font-black tracking-widest"><i class="fas fa-cogs mr-1"></i> NIVEL 2</span>' : 
-                               '<span class="bg-red-100 text-red-900 text-xs px-3 py-1 rounded-full border border-red-300 font-black tracking-widest"><i class="fas fa-fire mr-1"></i> NIVEL 3 (EXPERTO)</span>';
+                               '<span class="bg-red-100 text-red-900 text-xs px-3 py-1 rounded-full border border-red-300 font-black tracking-widest"><i class="fas fa-fire mr-1"></i> EXPERTO</span>';
             
             let html = `
             <div class="bg-white border-2 border-gray-100 rounded-2xl p-6 md:p-8 shadow-sm hover:shadow-lg transition-shadow relative overflow-hidden">
@@ -309,7 +413,7 @@ const app = (function() {
 
             renderPreguntas();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            showToast("Examen Ordinario Desbloqueado. Lea detenidamente el código.", "success");
+            showToast("Examen Ordinario Desbloqueado. Éxito.", "success");
         },
 
         entregar: () => {
@@ -317,10 +421,10 @@ const app = (function() {
 
             clearInterval(state.seguridad.intervaloTimer);
             let score = 0;
-            let maxScore = 50; // ESCALA REAL 50 PUNTOS
-            let stepGrade = { funcionalidad: [], calidad: [], eficiencia: [] };
+            let maxScore = 50; 
+            let incorrectas = []; // Array para guardar la retroalimentación de errores
 
-            state.preguntasActivas.forEach(q => {
+            state.preguntasActivas.forEach((q, index) => {
                 let esCorrecto = false;
                 if(q.tipo === 'radio') {
                     const select = document.querySelector(`input[name="${q.id}"]:checked`);
@@ -334,17 +438,40 @@ const app = (function() {
                 if(esCorrecto) {
                     score += q.pts;
                 } else {
-                    if(q.nivel === 1) stepGrade.funcionalidad.push(q.retro);
-                    else if(q.nivel === 2) stepGrade.calidad.push(q.retro);
-                    else stepGrade.eficiencia.push(q.retro);
+                    // Guardamos la info para la retroalimentación
+                    incorrectas.push({ numero: index + 1, contexto: q.contexto, retro: q.retro });
                 }
             });
 
             const porcentaje = (score / maxScore) * 100;
             let rango = ""; let claseRango = "";
-            if(porcentaje >= 85) { rango = "🏆 Ingeniero Mecatrónico Destacado (Pasa Ordinario)"; claseRango = "text-green-600"; }
-            else if(porcentaje >= 60) { rango = "🛠️ Conocimiento Aceptable (Pasa Ordinario)"; claseRango = "text-blue-600"; }
-            else { rango = "🌱 Dominio Insuficiente (Riesgo Académico)"; claseRango = "text-red-600"; }
+            if(porcentaje >= 85) { rango = "🏆 Nivel Destacado (Aprobado)"; claseRango = "text-green-600"; }
+            else if(porcentaje >= 60) { rango = "🛠️ Nivel Suficiente (Aprobado)"; claseRango = "text-blue-600"; }
+            else { rango = "🌱 Dominio Insuficiente (No Aprobado)"; claseRango = "text-red-600"; }
+
+            // Generar HTML de errores
+            let listaErroresHTML = "";
+            if(incorrectas.length === 0) {
+                listaErroresHTML = `
+                <div class="p-6 bg-green-50 border border-green-200 rounded-xl shadow-sm text-center">
+                    <i class="fas fa-star text-yellow-400 text-4xl mb-3"></i>
+                    <h4 class="font-black text-green-900 text-xl">¡Examen Perfecto!</h4>
+                    <p class="text-green-800 font-medium">No se registraron fallos técnicos en su evaluación.</p>
+                </div>`;
+            } else {
+                incorrectas.forEach(err => {
+                    listaErroresHTML += `
+                    <div class="mb-4 p-5 border-l-8 border-red-500 bg-red-50 rounded-r-xl shadow-sm">
+                        <div class="flex items-center mb-2">
+                            <span class="bg-red-200 text-red-900 text-xs font-bold px-2 py-1 rounded mr-3">Caso ${err.numero}</span>
+                            <h5 class="font-bold text-gray-800 text-sm italic">${err.contexto}</h5>
+                        </div>
+                        <p class="text-red-900 text-sm font-medium pl-2 border-l-2 border-red-300 ml-1">
+                            <i class="fas fa-wrench mr-2 text-red-500"></i><strong>Análisis Técnico:</strong> ${err.retro}
+                        </p>
+                    </div>`;
+                });
+            }
 
             document.getElementById('vista-examen').classList.add('hidden');
             const repo = document.getElementById('reporte-contenido');
@@ -368,26 +495,9 @@ const app = (function() {
                         <p class="text-2xl font-black ${claseRango}">${rango}</p>
                     </div>
 
-                    <h3 class="text-2xl font-black text-gray-800 mb-6 flex items-center"><i class="fas fa-clipboard-check text-indigo-500 mr-3"></i> Diagnóstico de Fallos y Áreas de Mejora</h3>
-                    <div class="space-y-6">
-                        <div class="p-6 border-l-8 border-blue-500 bg-blue-50 rounded-r-xl shadow-sm">
-                            <h4 class="font-black text-blue-900 mb-3 text-lg">NIVEL 1: Hardware Base (ADC e Interrupciones)</h4>
-                            <ul class="list-disc pl-6 text-gray-800 font-medium space-y-2">
-                                ${stepGrade.funcionalidad.length > 0 ? stepGrade.funcionalidad.map(r => `<li>${r}</li>`).join('') : '<li class="text-green-700"><i class="fas fa-check-circle mr-2"></i>Dominio absoluto de la configuración de puertos analógicos y banderas (INTCON).</li>'}
-                            </ul>
-                        </div>
-                        <div class="p-6 border-l-8 border-yellow-500 bg-yellow-50 rounded-r-xl shadow-sm">
-                            <h4 class="font-black text-yellow-900 mb-3 text-lg">NIVEL 2: Problemas de Entorno Real (RMW, Buffers)</h4>
-                            <ul class="list-disc pl-6 text-gray-800 font-medium space-y-2">
-                                ${stepGrade.calidad.length > 0 ? stepGrade.calidad.map(r => `<li>${r}</li>`).join('') : '<li class="text-green-700"><i class="fas fa-check-circle mr-2"></i>Excelente comprensión del efecto LAT vs PORT, lógica de polling y arquitectura Timer0 (16-bit).</li>'}
-                            </ul>
-                        </div>
-                        <div class="p-6 border-l-8 border-red-500 bg-red-50 rounded-r-xl shadow-sm">
-                            <h4 class="font-black text-red-900 mb-3 text-lg">NIVEL 3: Síntesis de Mnemotécnicos y Macros C</h4>
-                            <ul class="list-disc pl-6 text-gray-800 font-medium space-y-2">
-                                ${stepGrade.eficiencia.length > 0 ? stepGrade.eficiencia.map(r => `<li>${r}</li>`).join('') : '<li class="text-green-700"><i class="fas fa-check-circle mr-2"></i>Uso avanzado y certero de operadores a nivel de bits en C y ensamblador directo (MOVLW, BCF, ORG).</li>'}
-                            </ul>
-                        </div>
+                    <h3 class="text-2xl font-black text-gray-800 mb-6 flex items-center"><i class="fas fa-clipboard-check text-indigo-500 mr-3"></i> Diagnóstico de Áreas de Mejora (Fallos)</h3>
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-inner">
+                        ${listaErroresHTML}
                     </div>
                 </div>
             `;
@@ -412,7 +522,7 @@ const app = (function() {
             }).then(() => {
                 showToast("✅ Acta enviada al servidor.", "success");
             }).catch(e => {
-                showToast("Fallo de red. Descargue su PDF como evidencia obligatoria.", "error");
+                showToast("Fallo de red al enviar reporte.", "error");
             });
         }
     };
