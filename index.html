@@ -47,9 +47,10 @@
                         <div class="ml-4">
                             <p class="text-sm text-red-800 leading-relaxed">
                                 <strong>ATENCIÓN - REGLAS DEL EXAMEN ORDINARIO:</strong><br>
-                                1. Esta prueba evalúa competencias de ingeniería en ASM PIC y C Embebido.<br>
+                                1. Esta prueba evalúa competencias de ingeniería en ASM PIC y C en Arduino.<br>
                                 2. El sistema anti-trampas está activo (Detección de visibilidad de pestaña).<br>
-                                3. Consta de <strong>20 casos de estudio</strong> con valor de <strong>2.5 puntos cada uno (Escala total: 50 pts)</strong>.
+                                3. Consta de <strong>20 casos de estudio</strong> con valor de <strong>2.5 puntos cada uno (Escala total: 50 pts)</strong>.<br>
+                                4. Evaluación simultánea de <strong>4 Puntos CACEI</strong> adicionales.
                             </p>
                         </div>
                     </div>
@@ -108,8 +109,8 @@ const app = (function() {
         // --- BLOQUE 1: PIC18F4550 & ENSAMBLADOR/REGISTROS ---
         {
             id: 'q1', nivel: 1, tipo: 'radio', pts: 2.5,
-            contexto: 'PIC/C Caso 1: Conversor ADC y Registros Base. En el firmware de un sistema biométrico que lee la temperatura analógica en RA0, se observa la rutina: MOVLW B\'00001111\' seguida de MOVWF ADCON1.',
-            texto: '¿Qué efecto crítico tiene esta configuración del registro ADCON1 en el PIC18F4550?',
+            contexto: 'PIC/C Caso 1: Conversor ADC y Registros Base. Un Ingeniero está programando de un sistema biométrico que lee la temperatura analógica en RA0, se observa la rutina: MOVLW B\'00001111\' seguida de MOVWF ADCON1.',
+            texto: '¿Qué efecto tiene esta configuración del registro ADCON1 en el PIC18F4550?',
             opciones: [
                 'Inicia el muestreo analógico (GO/DONE).',
                 'Configura todos los canales multiplexados estrictamente como I/O digitales, deshabilitando la lectura analógica.',
@@ -121,11 +122,11 @@ const app = (function() {
         },
         {
             id: 'q2', nivel: 1, tipo: 'radio', pts: 2.5,
-            contexto: 'PIC Caso 2: Banderas de Interrupción. Un paro de emergencia está en INT0. El ingeniero olvidó colocar "BCF INTCON, INT0IF" antes del "RETFIE".',
+            contexto: 'PIC Caso 2: Interrupciónes. El sargento Moheno, ahora convertido en ingeniero, está programando un sistema basado en interrupciones y programa un paro de emergencia está en INT0. El ingeniero, como es descuidado, olvidó colocar "BCF INTCON, INT0IF" antes del "RETFIE".',
             texto: '¿Cuál será el comportamiento del hardware al salir de la rutina de interrupción?',
             opciones: [
                 'El sistema reanudará el lazo principal ignorando futuras emergencias.',
-                'Entrará en un bucle infinito ("Deadlock"): regresará inmediatamente a la ISR porque el hardware cree que el evento sigue ocurriendo.',
+                'Entrará en un bucle infinito: regresará inmediatamente a la ISR porque el hardware cree que el evento sigue ocurriendo.',
                 'Se generará un reinicio del sistema por el Watchdog.',
                 'El registro GIE se apagará permanentemente.'
             ],
@@ -147,7 +148,7 @@ const app = (function() {
         },
         {
             id: 'q4', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: 'PIC Caso 4: Timer 0 de 16 bits. El manual indica una regla estricta sobre cómo cargar TMR0H y TMR0L.',
+            contexto: 'PIC Caso 4: Timer. El manual indica una regla estricta sobre cómo cargar TMR0H y TMR0L.',
             texto: '¿Qué sucede si carga primero el byte en TMR0L y después en TMR0H?',
             opciones: [
                 'El byte alto (TMR0H) se quedará en un buffer y no se actualizará en el contador real hasta volver a escribir en TMR0L.',
@@ -160,8 +161,8 @@ const app = (function() {
         },
         {
             id: 'q5', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: 'PIC Caso 5: Polling. Usted espera un evento usando "BTFSS INTCON, TMR0IF" seguida de "GOTO LOOP".',
-            texto: 'En C (Estructuras de Control), ¿qué instrucción representa el equivalente a esta técnica de hardware bloqueante?',
+            contexto: 'PIC Caso 5: Polling. Imagina que estás en espera de un evento usando "BTFSS INTCON, TMR0IF" seguida de "GOTO LOOP".',
+            texto: 'Si estuvieses programando en C, tendrías que usar Estructuras de Control, ¿qué instrucción representa el equivalente a esta técnica de hardware bloqueante?',
             opciones: [
                 'if (INTCONbits.TMR0IF == 1)',
                 'switch (INTCONbits.TMR0IF)',
@@ -175,21 +176,26 @@ const app = (function() {
             id: 'q6', nivel: 3, tipo: 'codigo', pts: 2.5,
             contexto: 'PIC Caso 6: Vectores Absolutos. El compilador debe ubicar la subrutina "HighInt" exactamente en el vector de Alta Prioridad.',
             texto: 'Escriba la directiva de Ensamblador (3 letras) para iniciar el código en la memoria 0x0008.',
-            codigoBase: "________ 0x0008\nbra HighInt",
+            codigoBase: "________ 0x0008\n bra HighInt",
             respuestaRegex: /org/i,
             retro: 'La directiva ORG (Origin) establece la dirección de memoria absoluta del código.'
         },
         {
-            id: 'q7', nivel: 3, tipo: 'codigo', pts: 2.5,
-            contexto: 'PIC Caso 7: ADC Justificado. Configura ADFM=1 (Justificado a la derecha) para leer 10 bits.',
-            texto: 'Si los 8 bits bajos están en ADRESL, escriba el registro del PIC18F que almacena los 2 bits más significativos.',
-            codigoBase: "movff ________, var_alta\nmovff ADRESL, var_baja",
-            respuestaRegex: /adresh/i,
-            retro: 'Al justificar a la derecha, los 2 bits superiores se acomodan en el registro ADRESH.'
+            id: 'q7', nivel: 3, tipo: 'radio', pts: 2.5,
+            contexto: 'PIC Caso 7: Interrupciones. Diseñas el controlador de una celda de manufactura con una prensa neumática. Tienes dos eventos asíncronos: 1) El módulo UART (RX) de comunicación serial solicita atención para recibir la nueva cuota de producción desde la PC central, y 2) Una cortina óptica de seguridad (INT0) detecta si el operador introduce la mano en la zona de riesgo.',
+            texto: 'Al habilitar el modelo de prioridades (IPEN=1) en el PIC18F4550, ¿qué asignación de vectores debes implementar y cuál es la justificación técnica que defiende tu diseño?',
+            opciones: [
+                'Cortina óptica en Baja Prioridad (0x0018) y UART en Alta Prioridad (0x0008), garantizando que no se pierda ningún byte de datos de la receta de producción.',
+                'Ambas en Alta Prioridad (0x0008) para que el CPU las procese simultáneamente dividiendo el reloj de instrucción.',
+                'Cortina óptica en Alta Prioridad (0x0008) y UART en Baja Prioridad (0x0018). El evento de seguridad humana debe poder interrumpir al CPU incluso si está a la mitad de la recepción de datos.',
+                'Mantener ambas interrupciones en Baja Prioridad, ya que el hardware del PIC18 automáticamente da preferencia a los pines externos sobre los periféricos de comunicación.'
+            ],
+            correcta: 2,
+            retro: 'En automatización, la seguridad del operador es absoluta. Asignar la cortina óptica a la Alta Prioridad permite el "anidamiento": el CPU pausará de inmediato cualquier tarea (incluso si está a la mitad de una interrupción de baja prioridad leyendo la UART) para activar el paro de emergencia.'
         },
         {
             id: 'q8', nivel: 3, tipo: 'codigo', pts: 2.5,
-            contexto: 'PIC/C Caso 8: Bitwise Seguro. Configurar EXCLUSIVAMENTE el bit 3 de TRISD como ENTRADA (1), sin sobreescribir el resto del byte.',
+            contexto: 'PIC/C Caso 8: Bitwise. Configurar EXCLUSIVAMENTE el bit 3 de TRISD como ENTRADA (1), sin sobreescribir el resto del byte.',
             texto: 'Complete con el operador de ASIGNACIÓN COMPUESTA para realizar una máscara OR.',
             codigoBase: "TRISD ________ (1 << 3);",
             respuestaRegex: /\|=/i,
@@ -199,7 +205,7 @@ const app = (function() {
             id: 'q9', nivel: 3, tipo: 'codigo', pts: 2.5,
             contexto: 'PIC Caso 9: Acumulador. Desea apagar el Puerto A.',
             texto: 'Antes de usar MOVWF, escriba el mnemotécnico para cargar el valor literal 0x00 en el registro de trabajo (WREG).',
-            codigoBase: "________ 0x00\nMOVWF PORTA",
+            codigoBase: "________ 0x00\n MOVWF PORTA",
             respuestaRegex: /movlw/i,
             retro: 'MOVLW (Move Literal to W) carga una constante en el acumulador antes de pasarla a un puerto.'
         },
@@ -212,7 +218,7 @@ const app = (function() {
             retro: 'BCF (Bit Clear File) limpia el bit T0CS, forzando al Timer 0 a usar el reloj interno.'
         },
 
-        // --- BLOQUE 2: LENGUAJE C EMBEBIDO (Basado en el Repaso) ---
+        // --- BLOQUE 2: LENGUAJE C EMBEBIDO ---
         {
             id: 'q11', nivel: 1, tipo: 'radio', pts: 2.5,
             contexto: 'C Embebido Caso 11: Tipos de Datos. Un contador de máquina necesita almacenar hasta 60,000 iteraciones.',
@@ -303,20 +309,30 @@ const app = (function() {
             retro: 'En C, al utilizar un puntero que apunta a una estructura (struct), el operador de acceso indirecto obligatorio es la flecha (->).'
         },
         {
-            id: 'q19', nivel: 3, tipo: 'codigo', pts: 2.5,
-            contexto: 'C Embebido Caso 19: Directivas del Preprocesador. Para organizar el código y evitar errores de "Redefinición Múltiple", se emplean Guardas de Cabecera (Header Guards) en los archivos .h.',
-            texto: 'Escriba la directiva que evalúa lógicamente "Si NO está definido" para iniciar la protección del archivo.',
-            codigoBase: "________ MI_SENSOR_H\n#define MI_SENSOR_H\n// Código \n#endif",
-            respuestaRegex: /#ifndef/i,
-            retro: 'La directiva condicional #ifndef (If Not Defined) comprueba la ausencia previa del identificador antes de compilar el bloque de la librería.'
+            id: 'q19', nivel: 3, tipo: 'radio', pts: 2.5,
+            contexto: 'C Emebebido Caso 19: Diseño Orientado a Objetos (OOP) y Hardware. Estás desarrollando una librería en C++ para Arduino que controla un brazo robótico industrial. Creas la clase "BrazoRobotico" que incluye atributos internos como "anguloBase" y "anguloHombro", y un método "moverA(int grados)" que calcula la cinemática, ajusta la velocidad y mueve los servos de forma segura.',
+            texto: 'Al estructurar la clase, ¿por qué es una decisión importante de ingeniería declarar las variables de los ángulos estrictamente como "private" en lugar de "public"?',
+            opciones: [
+                'Para ahorrar memoria SRAM, ya que los atributos privados son compactados y optimizados automáticamente por el compilador AVR-G++.',
+                'Porque el framework de Arduino no soporta atributos públicos dentro de las clases, restringiendo el nivel "public" únicamente a las funciones (métodos).',
+                'Para proteger la integridad física de la máquina (Encapsulamiento): obliga a que el código en el loop() pase obligatoriamente por la lógica de validación del método "moverA()", evitando asignaciones directas que causen colisiones mecánicas.',
+                'Para permitir que las variables puedan ser compartidas automáticamente con las Rutinas de Servicio de Interrupción (ISR) del Timer1.'
+            ],
+            correcta: 2,
+            retro: 'El encapsulamiento (private) protege el hardware. Si las variables fueran públicas, un programador podría escribir "brazo.anguloBase = 5000;" en el loop(), saltándose las validaciones físicas y destruyendo los engranes del motor. Al ser privadas, solo la clase puede alterarlas de forma controlada.'
         },
         {
-            id: 'q20', nivel: 3, tipo: 'codigo', pts: 2.5,
-            contexto: 'C Embebido Caso 20: Definición de Registros. Al programar hardware a bajo nivel desde cero, debe decirle al compilador que una dirección física (ej. 0x25) es un registro real que cambia por eventos externos.',
-            texto: 'Escriba la palabra reservada (casting) exigida por las buenas prácticas para evitar que el compilador optimice o elimine las lecturas de este registro.',
-            codigoBase: "#define PORTB (*(________ uint8_t*)0x25)",
-            respuestaRegex: /volatile/i,
-            retro: 'Declarar un registro o variable de interrupción como volatile le instruye al compilador que dicho valor puede cambiar asíncronamente y debe leerse físicamente siempre de la RAM.'
+          id: 'q20', nivel: 3, tipo: 'radio', pts: 2.5,
+            contexto: 'C Emebido Caso 20: Eficiencia de Memoria y Punteros. Diseñas el programa de un dron de exploración. El sistema agrupa los datos de vuelo (Acelerómetro, Giroscopio, GPS, Altitud) en un "struct" masivo de 64 bytes. Debes pasar este paquete de datos a la función matemática "procesarTelemetria()" a una velocidad de 100 veces por segundo.',
+            texto: 'Como ingeniero a cargo del código, ¿cuál es la decisión arquitectónica correcta para enviar la estructura a la función sin colapsar el microcontrolador y por qué?',
+            opciones: [
+                'Paso por Valor: llamar a "procesarTelemetria(DatosVuelo d)". Esto es más seguro porque garantiza que la función trabaje con una copia aislada y no corrompa los sensores originales.',
+                'Paso por Referencia: llamar a "procesarTelemetria(DatosVuelo *d)". Esto envía únicamente la dirección de memoria del "struct" (ocupando solo 2 bytes en la pila), evitando la clonación masiva de datos y previniendo un Stack Overflow.',
+                'Asignación Dinámica: declarar la estructura con "malloc()" antes de enviarla a la función, asegurando que los 64 bytes se almacenen en el Heap en lugar del Stack.',
+                'Fragmentación: dividir el "struct" de 64 bytes en 64 variables globales individuales y llamar a la función sin parámetros para acelerar el procesamiento de la CPU.'
+            ],
+            correcta: 1,
+            retro: 'En sistemas embebidos con poca memoria SRAM, pasar grandes estructuras por valor crea copias masivas en la pila (Stack). Repetir esto a alta velocidad provocará rápidamente un colapso del sistema (Stack Overflow). Usar punteros (paso por referencia) es la única vía profesional y eficiente, ya que solo se transfiere un mapa que indica dónde está la información.'
         }
     ];
 
@@ -423,6 +439,7 @@ const app = (function() {
             let score = 0;
             let maxScore = 50; 
             let incorrectas = []; 
+            let correctas = []; 
 
             state.preguntasActivas.forEach((q, index) => {
                 let esCorrecto = false;
@@ -437,6 +454,7 @@ const app = (function() {
 
                 if(esCorrecto) {
                     score += q.pts;
+                    correctas.push({ numero: index + 1, contexto: q.contexto, retro: q.retro });
                 } else {
                     incorrectas.push({ numero: index + 1, contexto: q.contexto, retro: q.retro });
                 }
@@ -444,17 +462,20 @@ const app = (function() {
 
             const porcentaje = (score / maxScore) * 100;
             let rango = ""; let claseRango = "";
-            if(porcentaje >= 85) { rango = "🏆 Nivel Destacado (Aprobado)"; claseRango = "text-green-600"; }
-            else if(porcentaje >= 60) { rango = "🛠️ Nivel Suficiente (Aprobado)"; claseRango = "text-blue-600"; }
-            else { rango = "🌱 Dominio Insuficiente (No Aprobado)"; claseRango = "text-red-600"; }
+            if(porcentaje >= 85) { rango = "🏆 Caballero de Oro (Aprobado) ♈♉♊"; claseRango = "text-yellow-600"; }
+            else if(porcentaje >= 60) { rango = "🥈 Caballero de Plata (Aprobado) 🦅🦎🐋"; claseRango = "text-gray-500"; }
+            else { rango = "🥉 Caballero de Bronce (No Aprobado) 🐉🦢🐎"; claseRango = "text-amber-700"; }
+
+            // Cálculo puntos CACEI (proporcional sobre base de 4)
+            const caceiScore = ((score / maxScore) * 4).toFixed(1);
 
             let listaErroresHTML = "";
             if(incorrectas.length === 0) {
                 listaErroresHTML = `
                 <div class="p-6 bg-green-50 border border-green-200 rounded-xl shadow-sm text-center">
-                    <i class="fas fa-star text-yellow-400 text-4xl mb-3"></i>
-                    <h4 class="font-black text-green-900 text-xl">¡Examen Perfecto!</h4>
-                    <p class="text-green-800 font-medium">No se registraron fallos técnicos en su evaluación.</p>
+                    <i class="fas fa-shield-alt text-green-500 text-4xl mb-3"></i>
+                    <h4 class="font-black text-green-900 text-xl">¡Defensa Perfecta!</h4>
+                    <p class="text-green-800 font-medium">El séptimo sentido está dominado. No tuviste fallos técnicos.</p>
                 </div>`;
             } else {
                 incorrectas.forEach(err => {
@@ -465,7 +486,28 @@ const app = (function() {
                             <h5 class="font-bold text-gray-800 text-sm italic">${err.contexto}</h5>
                         </div>
                         <p class="text-red-900 text-sm font-medium pl-2 border-l-2 border-red-300 ml-1">
-                            <i class="fas fa-wrench mr-2 text-red-500"></i><strong>Análisis Técnico:</strong> ${err.retro}
+                            <i class="fas fa-times-circle mr-2 text-red-500"></i><strong>Corrección:</strong> ${err.retro}
+                        </p>
+                    </div>`;
+                });
+            }
+
+            let listaAciertosHTML = "";
+            if(correctas.length === 0) {
+                listaAciertosHTML = `
+                <div class="p-4 bg-red-50 border border-red-200 rounded-xl shadow-sm text-center">
+                    <p class="text-red-800 font-bold">No se registraron respuestas correctas. Es necesario entrenar más el cosmos.</p>
+                </div>`;
+            } else {
+                correctas.forEach(cor => {
+                    listaAciertosHTML += `
+                    <div class="mb-4 p-4 border-l-8 border-green-500 bg-green-50 rounded-r-xl shadow-sm">
+                        <div class="flex items-center mb-1">
+                            <span class="bg-green-200 text-green-900 text-xs font-bold px-2 py-1 rounded mr-3">Caso ${cor.numero}</span>
+                            <h5 class="font-bold text-gray-800 text-sm italic truncate">${cor.contexto}</h5>
+                        </div>
+                        <p class="text-green-900 text-xs font-medium pl-2 border-l-2 border-green-300 ml-1 mt-2">
+                            <i class="fas fa-check-circle mr-1 text-green-500"></i> ${cor.retro}
                         </p>
                     </div>`;
                 });
@@ -478,25 +520,47 @@ const app = (function() {
                 <div class="border-4 border-indigo-900 p-6 md:p-10 rounded-2xl relative bg-white shadow-2xl">
                     <div class="absolute top-0 right-0 bg-indigo-900 text-white px-6 py-2 rounded-bl-2xl font-black text-sm tracking-widest shadow-md">ACTA OFICIAL DE ORDINARIO</div>
                     
-                    <h2 class="text-3xl md:text-4xl font-black mb-8 text-indigo-950 border-b-4 border-gray-100 pb-4">Resultados de Evaluación Final</h2>
+                    <h2 class="text-3xl md:text-4xl font-black mb-8 text-indigo-950 border-b-4 border-gray-100 pb-4">Santuario Académico: Resultados</h2>
                     
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 bg-indigo-50/50 p-6 rounded-xl border border-indigo-100 shadow-inner">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 bg-indigo-50/50 p-6 rounded-xl border border-indigo-100 shadow-inner">
                         <div><p class="text-xs text-indigo-400 uppercase tracking-widest mb-1 font-bold">Sustentante</p><p class="font-black text-gray-800 text-lg truncate">${state.alumno.nombre}</p></div>
                         <div><p class="text-xs text-indigo-400 uppercase tracking-widest mb-1 font-bold">Matrícula</p><p class="font-black text-gray-800 text-lg">${state.alumno.matricula} (S:${state.alumno.serie})</p></div>
                         <div><p class="text-xs text-indigo-400 uppercase tracking-widest mb-1 font-bold">Cronómetro</p><p class="font-black text-blue-600 text-lg">${formatearTiempo(state.seguridad.minutos, state.seguridad.segundos)}</p></div>
                         <div><p class="text-xs text-indigo-400 uppercase tracking-widest mb-1 font-bold">Integridad</p><p class="font-black text-${state.seguridad.salidas > 0 ? 'red' : 'green'}-600 text-lg">${state.seguridad.salidas} incidentes</p></div>
                     </div>
 
+                    <div class="mb-10 flex justify-center">
+                        <div class="bg-indigo-900 text-white rounded-xl px-8 py-4 shadow-lg border-2 border-indigo-400 flex items-center gap-4">
+                            <i class="fas fa-graduation-cap text-3xl text-indigo-300"></i>
+                            <div>
+                                <p class="text-xs text-indigo-200 tracking-widest font-bold uppercase">Evaluación de Atributos CACEI</p>
+                                <p class="text-2xl font-black">${caceiScore} <span class="text-sm font-medium text-indigo-300">/ 4.0 Pts</span></p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="text-center mb-12 p-10 bg-white rounded-2xl shadow-lg border-2 border-indigo-50">
-                        <p class="text-indigo-400 uppercase tracking-widest text-sm mb-3 font-black">Calificación Final (Base 50)</p>
+                        <p class="text-indigo-400 uppercase tracking-widest text-sm mb-3 font-black">Calificación Final Ordinario</p>
                         <p class="text-7xl font-black mb-4 text-indigo-950">${score} <span class="text-3xl text-gray-300">/ 50 pts</span></p>
                         <p class="text-2xl font-black ${claseRango}">${rango}</p>
                     </div>
 
-                    <h3 class="text-2xl font-black text-gray-800 mb-6 flex items-center"><i class="fas fa-clipboard-check text-indigo-500 mr-3"></i> Diagnóstico de Áreas de Mejora (Fallos)</h3>
-                    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-inner">
-                        ${listaErroresHTML}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-xl font-black text-red-800 mb-4 flex items-center"><i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Armadura Rota (Errores)</h3>
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-inner max-h-96 overflow-y-auto">
+                                ${listaErroresHTML}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-black text-green-800 mb-4 flex items-center"><i class="fas fa-check-circle text-green-500 mr-2"></i> Cosmos Dominado (Aciertos)</h3>
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-inner max-h-96 overflow-y-auto">
+                                ${listaAciertosHTML}
+                            </div>
+                        </div>
                     </div>
+
                 </div>
             `;
             document.getElementById('vista-reporte').classList.remove('hidden');
@@ -508,6 +572,7 @@ const app = (function() {
                 serie: state.alumno.serie,
                 aciertos: score,
                 calificacion: porcentaje.toFixed(1) + '%',
+                cacei: caceiScore,
                 tiempo: formatearTiempo(state.seguridad.minutos, state.seguridad.segundos),
                 salidasPestaña: state.seguridad.salidas
             };
@@ -518,9 +583,9 @@ const app = (function() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             }).then(() => {
-                showToast("✅ Acta enviada al servidor.", "success");
+                showToast("✅ Calificaciones reportadas con éxito al profesor.", "success");
             }).catch(e => {
-                showToast("Fallo de red al enviar reporte.", "error");
+                showToast("Fallo de red al enviar reporte. Reportar al profesor", "error");
             });
         }
     };
