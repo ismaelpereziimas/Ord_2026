@@ -102,118 +102,117 @@ const app = (function() {
         preguntasActivas: []
     };
 
-    // BANCO DE PREGUNTAS (ESCALA: 50 PUNTOS, DIFICULTAD PROGRESIVA)
+    // BANCO DE PREGUNTAS (ESCALA: 50 PUNTOS, DIFICULTAD PROGRESIVA, TOMA DE DECISIONES REAL)
     const bancoMaestro = [
-
-        // ─── NIVEL 1: Recordar y Comprender (10 pts) ────────────────────────────
+        // --- NIVEL 1: Recordar y Comprender (10 pts) ---
         {
             id: 'q1', nivel: 1, tipo: 'radio', pts: 5,
-            contexto: 'Caso 1: Sistema de monitoreo de temperatura en horno industrial. Un equipo de mecatrónica diseña el firmware de un PIC18F4550 para leer cada 100 ms la temperatura de un horno CNC mediante un sensor PT100 conectado al ADC. El líder de proyecto detecta que el compilador XC8, en modo de optimización alta, elimina por completo las lecturas del registro ADRESH/ADRESL porque "su valor nunca cambia dentro del bucle".',
-            texto: '¿Cuál es la causa raíz de este comportamiento del compilador y qué modificador de declaración en C corrige el problema sin degradar el rendimiento del firmware?',
+            contexto: 'Caso 1: Dispositivo Médico IoT. Un monitor de ritmo cardíaco debe enviar un identificador de paciente de 32 bits (uint32_t) a un módulo de comunicación mediante I2C, el cual solo puede transmitir 1 byte a la vez.',
+            texto: '¿Cuál es la estrategia más eficiente a nivel de memoria en C para extraer los 4 bytes secuencialmente sin sobrecargar el procesador con operaciones matemáticas?',
             opciones: [
-                'El compilador confunde ADRESH con una variable ROM. Se corrige declarándola como const uint8_t.',
-                'El compilador aplica optimización de propagación de copias (copy propagation) al asumir que ningún agente externo modifica el registro entre instrucciones. La solución es declarar el puntero al registro como volatile, forzando una lectura física desde el bus en cada acceso.',
-                'El compilador elimina la lectura porque el ADC no está habilitado en el registro ADCON0. Se corrige poniendo ADON=1 antes del bucle.',
-                'El compilador genera código incorrecto por un bug conocido de XC8. Se soluciona activando el pragma #optimize(off) en todo el módulo ADC.'
+                'Crear un arreglo de 4 variables tipo float y dividir el identificador entre 255.',
+                'Hacer un casting de la dirección de memoria de la variable a un puntero de 8 bits (uint8_t*) e ir incrementando la dirección de lectura del puntero (+1, +2...).',
+                'Guardar la variable de 32 bits en la memoria EEPROM y solicitar su lectura manual byte por byte en cada ciclo de I2C.',
+                'Pasar la variable por valor a una función auxiliar y utilizar la operación módulo (% 8).'
             ],
             correcta: 1,
-            retro: 'La palabra clave volatile le indica al compilador que la variable puede ser modificada por hardware en cualquier instante (como el ADC al completar una conversión), obligándolo a leer físicamente el registro en cada acceso en lugar de usar el valor almacenado en un registro de la CPU.'
+            retro: 'Hacer un casting a un puntero de 8 bits (uint8_t*) permite manipular la lectura directa de la memoria byte por byte, logrando una "serialización" nativa e instantánea sin gastar ciclos de CPU en cálculos matemáticos.'
         },
         {
             id: 'q2', nivel: 1, tipo: 'radio', pts: 5,
-            contexto: 'Caso 2: Controlador de brazo robótico de 4 DOF. El firmware en C embebido para el PIC18F4550 que controla los cuatro servomotores del brazo debe almacenar en tiempo de ejecución los ángulos actuales de cada articulación para ejecutar trayectorias. Un estudiante propone usar malloc() para crear dinámicamente el buffer de posiciones, ya que "así se puede ajustar el tamaño según la trayectoria requerida".',
-            texto: 'Desde la perspectiva de seguridad funcional de firmware embebido, ¿por qué esta propuesta representa un riesgo crítico en el PIC18F4550 y cuál es la alternativa correcta?',
+            contexto: 'Caso 2: Automatización Industrial (PIC ASM). Una banda transportadora cuenta con un sensor óptico de alta velocidad. El sistema debe contar exactamente 500 cajas para detener un motor, pero el procesador (CPU) está 100% ocupado calculando una compleja ecuación PID.',
+            texto: '¿Qué configuración de hardware en el PIC18F4550 es la elección arquitectónicamente más óptima para registrar las cajas sin interrumpir o ralentizar la ecuación PID?',
             opciones: [
-                'malloc() no está disponible en XC8 para PIC18. La alternativa es usar calloc() que sí está implementado para esta familia de microcontroladores.',
-                'malloc() es demasiado lento para sistemas de tiempo real. Se usa en cambio un RTOS como FreeRTOS que gestiona el Heap con mayor velocidad.',
-                'El PIC18F4550 carece de MMU (Memory Management Unit), por lo que la asignación dinámica fragmenta el Heap de manera irreversible durante la ejecución. Si el brazo opera continuamente horas, la memoria se agota causando un Stack Overflow que detiene el robot en una posición indefinida. La alternativa es un arreglo estático de tamaño fijo: uint8_t angulos[4];',
-                'El problema es que malloc() usa interrupciones internas que colisionan con el Timer1 utilizado para la generación de PWM de los servos. Se corrige deshabilitando GIE antes de llamarlo.'
+                'Conectar el sensor a la interrupción externa INT0 y sumar una variable en software (INC) cada vez que pase una caja.',
+                'Hacer "Polling" (leer continuamente) un pin digital dentro del bucle principal (while) pausando momentáneamente el cálculo del PID.',
+                'Configurar el Timer 0 en modo Contador Asíncrono (T0CS = 1) conectado al pin físico T0CKI, permitiendo que el hardware perimetral cuente de forma autónoma sin intervención del CPU.',
+                'Utilizar el módulo Watchdog (WDT) configurado con un post-scaler calibrado a la velocidad de la banda.'
             ],
             correcta: 2,
-            retro: 'Sin una MMU, la memoria dinámica fragmenta el Heap de forma acumulativa e irreversible. En sistemas embebidos de seguridad crítica (robótica, automotriz, médico), la regla MISRA-C prohíbe explícitamente malloc/free. La solución es siempre memoria estática con tamaño determinado en tiempo de compilación.'
+            retro: 'Al usar el Timer 0 en modo contador, el conteo de pulsos físicos ocurre en los registros internos del hardware, liberando completamente al CPU para procesar el PID hasta que ocurra el desbordamiento programado.'
         },
 
-        // ─── NIVEL 2: Aplicar y Analizar (15 pts) ───────────────────────────────
+        // --- NIVEL 2: Aplicar y Analizar (15 pts) ---
         {
             id: 'q3', nivel: 2, tipo: 'radio', pts: 5,
-            contexto: 'Caso 3: Sistema de clasificación de piezas por peso en línea de manufactura. Una celda de carga conectada al ADC del PIC18F4550 entrega lecturas de 8 bits. El arreglo uint8_t lecturas[8] almacena las últimas 8 muestras. El firmware calcula el promedio usando la función: uint8_t promedio = calcularMedia(lecturas, 8); donde la firma es uint8_t calcularMedia(uint8_t *buf, uint8_t n). Dentro de la función, el ingeniero usa indistintamente buf[i] y *(buf+i) para acceder a las muestras.',
-            texto: 'Considerando que lecturas[] está en RAM y buf es el puntero recibido, ¿cuál es el comportamiento real al ejecutar buf[3] vs *(buf+3), y qué implicación tiene esto para el diseño del firmware?',
+            contexto: 'Caso 3: Sistemas Críticos y Prioridades (PIC ASM). Una guillotina de imprenta cuenta con un paro de emergencia láser (Interrupción Alta Prioridad). Simultáneamente, el sistema actualiza una pantalla LCD (Interrupción de Baja Prioridad).',
+            texto: 'Si el operario rompe el láser de emergencia en el microsegundo exacto en que la rutina de Baja Prioridad (LCD) se está ejecutando, ¿cómo se comportará el hardware del PIC18F?',
             opciones: [
-                'buf[3] copia el arreglo completo antes de acceder al índice 3 (call by value), mientras que *(buf+3) accede directamente al elemento original. Usar *(buf+3) es más seguro porque evita la copia.',
-                'Ambas expresiones son sintácticamente equivalentes en C: buf[3] se compila como *(buf+3). Ambas acceden al cuarto byte del arreglo original en RAM sin copia. Esto implica que la función puede modificar accidentalmente los datos originales si escribe en buf[i], por lo que si la función es sólo de lectura, el puntero debe declararse const uint8_t *buf.',
-                'buf[3] accede al elemento con índice base-1, por lo que regresa el valor en la posición 4 del arreglo. *(buf+3) usa base-0 y regresa la posición 3. Mezclarlos provoca un off-by-one error.',
-                'buf[3] usa el Stack para la indexación, mientras que *(buf+3) usa directamente el bus de datos. En el PIC18F4550 el Stack tiene sólo 31 niveles, por lo que usar notación de corchetes en funciones anidadas puede causar Stack Overflow.'
+                'El sistema se bloqueará (Hard Fault) ya que la arquitectura PIC no soporta el anidamiento (nesting) de llamados a interrupción concurrentes.',
+                'El CPU suspenderá inmediatamente la rutina de la pantalla LCD, saltará al vector 0x0008 para detener la cuchilla, y al ejecutar su RETFIE reanudará la LCD en el punto exacto donde la dejó.',
+                'El paro de emergencia se descartará automáticamente para prevenir la corrupción de los registros visuales de la pantalla LCD.',
+                'El CPU finalizará la actualización completa de la LCD para proteger la integridad de los registros, y posteriormente atenderá el vector del paro de emergencia.'
             ],
             correcta: 1,
-            retro: 'En C, array[i] es exactamente equivalente a *(array+i) — el compilador genera el mismo código máquina. El punto crítico para firmware embebido es que pasar un puntero a una función da acceso de escritura al arreglo original. Usar const en el parámetro es una práctica defensiva obligatoria cuando la función no debe modificar los datos.'
+            retro: 'El PIC18F permite anidamiento si se habilitan las prioridades (IPEN). Una interrupción de Alta Prioridad (0x0008) interrumpirá instantáneamente a una de Baja Prioridad (0x0018), lo cual es el comportamiento correcto en sistemas críticos de vida o muerte.'
         },
         {
             id: 'q4', nivel: 2, tipo: 'radio', pts: 5,
-            contexto: 'Caso 4: Control de semáforo peatonal inteligente con detección de emergencias. El firmware en ASM del PIC18F4550 controla un semáforo. El Timer0 en modo de 16 bits con prescaler 1:256 genera los tiempos de cada fase. Cuando un botón de emergencia (conectado a INT0/RB0) es presionado, una ambulancia debe tener paso inmediato: todas las luces vehiculares pasan a rojo y el peatonal a verde durante 15 segundos. El ingeniero observa que al presionar el botón durante la fase de verde vehicular, el semáforo a veces NO responde.',
-            texto: 'Analizando la arquitectura de interrupciones del PIC18F4550, ¿cuál es la causa más probable de la falla intermitente y cómo se corrige correctamente?',
+            contexto: 'Caso 4: Eficiencia de SRAM en Sensores Remotos. Un CubeSat (satélite) recolecta lecturas atmosféricas encapsuladas en un "struct" masivo (SensorPayload) de 128 bytes. Debe mandar estos datos a la función procesarTelemetria().',
+            texto: 'Considerando que la memoria RAM del microcontrolador es un recurso crítico, ¿cuál es el diseño de software correcto para mandar los datos a la función?',
             opciones: [
-                'El botón tiene rebote mecánico (debounce). Al presionarlo, genera múltiples flancos que cancelan la interrupción INT0. Se corrige agregando un condensador de 100nF en paralelo con el botón.',
-                'El problema es que INT0IF no se limpia automáticamente antes de ejecutar la ISR. Si no se hace BCF INTCON, INT0IF al inicio de la rutina, la interrupción se ejecuta en bucle infinito y nunca sale. El semáforo se congela porque la ISR entra, sale, y entra de nuevo inmediatamente.',
-                'La causa es que el bit GIE (Global Interrupt Enable) se deshabilita automáticamente durante cualquier operación de escritura al PORTB. Durante la fase de verde vehicular el firmware escribe constantemente al puerto, bloqueando INT0. Se corrige poniendo GIE=1 explícitamente después de cada escritura al puerto.',
-                'El Timer0 tiene mayor prioridad que INT0 en el PIC18F4550 por hardware, por lo que siempre gana la competencia. Se corrige configurando INT0 como interrupción de Alta Prioridad mediante el bit INT0IP=1 en el registro INTCON3.'
+                'Dividir el struct de 128 bytes en 128 variables globales individuales para evitar problemas de alcance (scope).',
+                'Paso por Valor: llamar a procesarTelemetria(SensorPayload datos); garantizando que la función no corrompa los originales.',
+                'Paso por Referencia: llamar a procesarTelemetria(SensorPayload *datos); pasando exclusivamente la dirección de memoria (2 o 4 bytes) evitando clonar 128 bytes en el Stack.',
+                'Convertir los datos a texto (C-String) y pasarlos en fragmentos usando strtok().'
             ],
-            correcta: 3,
-            retro: 'El PIC18F4550 tiene sistema de dos niveles de prioridad. INT0 tiene asignado el bit INT0IP en INTCON3. Si no se configura explícitamente como Alta Prioridad y el Timer0 sí lo es, el Timer0 siempre interrumpirá primero y la ISR de emergencia quedará pendiente. Además, la bandera INT0IF DEBE limpiarse manualmente con BCF dentro de la ISR para no generar un bucle de re-entrada.'
+            correcta: 2,
+            retro: 'El paso por referencia usando un puntero evita crear copias gigantes en la memoria temporal (Stack). Pasar una estructura de 128 bytes "por valor" rápidamente causará un Stack Overflow en microcontroladores con RAM limitada.'
         },
         {
             id: 'q5', nivel: 2, tipo: 'radio', pts: 5,
-            contexto: 'Caso 5: Dispensador automático de medicamentos en farmacia hospitalaria. El PIC18F4550 controla un motor paso a paso que posiciona una bandeja giratoria con 8 compartimentos. Cada compartimento requiere exactamente 45° de giro (400 pasos del motor a 1.8°/paso en modo completo). La ISR de Alta Prioridad del Timer1 incrementa un contador de pasos. Al terminar la rutina de interrupción del Timer1, el ingeniero usa RETURN en lugar de RETFIE.',
-            texto: '¿Qué consecuencia concreta tendrá este error en el comportamiento del dispensador durante una operación real de despacho de medicamentos?',
+            contexto: 'Caso 5: Diseño de Interfaz (Bouncing). Está programando el panel de una máquina expendedora con botones puramente mecánicos. Sabe que las láminas metálicas de los botones rebotan generando múltiples micro-pulsos.',
+            texto: 'Si usted comete el error de conectar este botón directamente a una Interrupción Externa por Flanco (ej. INT0) sin colocar filtros RC por hardware ni técnicas de "debounce" por software, ¿cuál será el efecto en el firmware?',
             opciones: [
-                'RETURN regresa a la dirección correcta pero tarda 2 ciclos más que RETFIE. En 400 pasos esto acumula un retraso de 800 ciclos, causando que el motor llegue 0.9° antes de la posición correcta.',
-                'RETURN regresa al punto de interrupción pero NO rehabilita el bit GIE. Después del primer despacho el Timer1 seguirá desbordándose internamente pero su ISR nunca volverá a ejecutarse. El motor dejará de responder completamente a partir del segundo medicamento, posiblemente dispensando el fármaco equivocado para todos los pacientes siguientes.',
-                'RETURN genera un pop adicional del Stack de 31 niveles del PIC18F4550. Después de 31 despachos el Stack se desborda y el microcontrolador entra en modo RESET automático, reiniciando el conteo de pasos a cero y descalibrando el dispensador.',
-                'No hay diferencia funcional. RETURN y RETFIE generan el mismo código máquina en el compilador MPASM para la familia PIC18. La distinción es solo semántica para el programador.'
+                'La alta corriente inicial reiniciará el módulo del Brown-out Reset (BOR) del microcontrolador.',
+                'El vector de interrupción de alta prioridad ignorará los pulsos menores a 1 ms por su diseño de compuerta Schmitt Trigger.',
+                'El botón fallará intermitentemente debido a las altas tolerancias capacitivas en la capa de hardware.',
+                'Se desatará una "Tormenta de Interrupciones": el CPU detectará decenas de flancos por un solo click físico, disparando la ISR repetitivamente y congelando el lazo principal (main).'
             ],
-            correcta: 1,
-            retro: 'RETFIE (Return From Interrupt, Enable) es la única instrucción que al retornar de la ISR también setea el bit GIE a 1. Usar RETURN deja GIE=0 permanentemente tras la primera interrupción atendida, dejando ciego al microcontrolador para todas las interrupciones futuras — un fallo catastrófico en cualquier sistema de control.'
+            correcta: 3,
+            retro: 'El rebote mecánico (bounce) genera decenas de transiciones de voltaje reales. Conectarlo directo a una interrupción fuerza al CPU a atender un evento de interrupción por cada uno de esos pequeños rebotes eléctricos, colapsando el sistema.'
         },
 
-        // ─── NIVEL 3: Evaluar y Crear — Síntesis de Código (25 pts) ────────────
+        // --- NIVEL 3: Evaluar y Crear - Retos de Código Puro (25 pts) ---
         {
             id: 'q6', nivel: 3, tipo: 'codigo', pts: 5,
-            contexto: 'Caso 6: Telemetría de robot móvil autónomo. El firmware C del PIC18F4550 almacena datos del robot en una estructura: typedef struct { float velocidad; uint8_t bateria; uint8_t estado; } Robot_t; Robot_t robot1; Robot_t *pr = &robot1; Una función de telemetría recibe el puntero y debe actualizar la velocidad máxima registrada cuando el sensor de odometría reporta 1.5 m/s.',
-            texto: 'Complete el operador C para acceder al miembro "velocidad" a través del puntero "pr" y asignarle el valor 1.5.',
-            codigoBase: "pr________velocidad = 1.5f;",
-            respuestaRegex: /->/,
-            retro: 'El operador flecha (->) es el único correcto para acceder a miembros de una estructura a través de un puntero. Es equivalente a (*pr).velocidad pero es la sintaxis estándar en C embebido. Usar "." en lugar de "->" es un error de compilación cuando se trabaja con punteros a structs.'
+            contexto: 'Caso 6: Operaciones Seguras en Hardware (Ensamblador). El actuador magnético de un brazo robótico está conectado al pin RC2. El resto de los pines del Puerto C controlan la telemetría vital que NO debe alterarse.',
+            texto: 'Escriba la instrucción mnemotécnica en Ensamblador PIC (3 letras) que efectúa la operación "Read-Modify-Write" a nivel hardware para PONER EN "1" EXCLUSIVAMENTE el pin del electroimán.',
+            codigoBase: "________ PORTC, 2",
+            respuestaRegex: /bsf/i,
+            retro: 'BSF (Bit Set File) es la instrucción que aplica el concepto Read-Modify-Write de forma segura por hardware: lee todo el puerto, cambia exclusivamente el bit indicado a "1", y vuelve a escribir todo el puerto.'
         },
         {
             id: 'q7', nivel: 3, tipo: 'codigo', pts: 5,
-            contexto: 'Caso 7: Librería modular para driver de pantalla OLED en sistema HMI industrial. El proyecto mecatrónico separa el firmware en módulos: main.c incluye "oled_driver.h", "motor_ctrl.h" también incluye "oled_driver.h" para mostrar errores, y main.c también incluye "motor_ctrl.h". Sin una protección correcta, el preprocesador incluye oled_driver.h dos veces, generando errores de redefinición de tipos y funciones que impiden compilar el proyecto completo.',
-            texto: 'Escriba la directiva de preprocesador que va en la PRIMERA línea del archivo oled_driver.h para prevenir esta inclusión múltiple.',
-            codigoBase: "________ OLED_DRIVER_H\n#define OLED_DRIVER_H\n// Prototipos y tipos del driver OLED\n#endif",
-            respuestaRegex: /#ifndef/i,
-            retro: '#ifndef (If Not Defined) es el estándar del lenguaje C para Header Guards. Cuando el preprocesador encuentra la segunda inclusión, OLED_DRIVER_H ya está definido, por lo que salta todo el contenido hasta el #endif. Los compiladores modernos también aceptan #pragma once, pero #ifndef es portable a cualquier compilador embebido incluyendo XC8, IAR y Keil.'
+            contexto: 'Caso 7: Máscaras de Bits (C Firmware). Una Computadora de Auto (ECU) usa un registro uint8_t config_reg. Un protocolo exige que, por seguridad, usted debe APAGAR (poner en 0) estrictamente el bit 4 sin sobreescribir configuraciones adyacentes.',
+            texto: 'Complete el código en C para apagar el bit 4 utilizando la combinación del operador de asignación compuesta bit a bit y el operador de complemento.',
+            codigoBase: "config_reg ________ ~(1 << 4);",
+            respuestaRegex: /&=/,
+            retro: 'Para limpiar un bit sin afectar a los demás en C, se utiliza la asignación "AND igual" (&=) con una máscara invertida con el operador NOT (~).'
         },
         {
             id: 'q8', nivel: 3, tipo: 'codigo', pts: 5,
-            contexto: 'Caso 8: Panel de control de máquina CNC con señalización RGB. El PORTB del PIC18F4550 controla un LED RGB: RB5=Rojo (alarma), RB4=Verde (operación normal), RB3=Azul (modo configuración). Durante la ejecución de un ciclo de maquinado activo (RB4=1, RB3=1), el sistema detecta una colisión de herramienta y debe encender únicamente RB5 (alarma roja) apagando los demás. La primera operación crítica es apagar RB4 (verde) sin alterar los bits RB3 (azul activo) ni RB5 (rojo que se está encendiendo en otra instrucción).',
-            texto: 'Escriba la combinación exacta de operador de asignación compuesta y operador NOT a nivel de bits para hacer el CLEAR seguro de únicamente el bit RB4 del PORTB.',
-            codigoBase: "PORTB ________ (1 << 4);",
-            respuestaRegex: /&=~/i,
-            retro: 'La operación Read-Modify-Write con &=~ es la única forma segura de limpiar un bit individual sin afectar el resto del puerto. &= aplica un AND bit a bit, ~ invierte la máscara (convirtiendo 0b00010000 en 0b11101111), resultando en que sólo RB4 queda en 0 mientras todos los demás bits mantienen su estado. En control de maquinaria CNC esto previene activar accidentalmente salidas que comanden movimientos.'
+            contexto: 'Caso 8: Arquitectura y Compiladores. Al desarrollar un bootloader propio, usted nota que las configuraciones de registros de reloj fallan porque el optimizador del lenguaje C detecta que "esas variables nunca se usan en cálculos matemáticos" y borra sus líneas de código.',
+            texto: 'Complete el casting en C para forzar al compilador a leer y escribir SIEMPRE sobre la dirección de memoria absoluta 0x2000, asumiendo que el hardware podría cambiarla.',
+            codigoBase: "(*(________ uint8_t *)0x2000) = 0xAA;",
+            respuestaRegex: /volatile/i,
+            retro: 'La palabra clave reservada "volatile" le advierte al compilador de C que la variable o dirección de memoria mapeada puede ser modificada asíncronamente por el hardware, anulando cualquier optimización que pretenda omitirla.'
         },
         {
             id: 'q9', nivel: 3, tipo: 'codigo', pts: 5,
-            contexto: 'Caso 9: Sistema de parada de emergencia (E-Stop) para celda robótica. Cuando el operador presiona el botón de paro de emergencia (E-Stop) conectado a INT0/RB0, la ISR de Alta Prioridad del PIC18F4550 debe: (1) cortar la alimentación del robot, (2) registrar el evento en memoria EEPROM y (3) rearmar el sistema para poder detectar una segunda emergencia. Si la bandera de INT0 no se limpia antes del RETFIE, el sistema reingresa infinitamente a la ISR bloqueando cualquier otra operación.',
-            texto: 'Escriba la instrucción mnemotécnica de 3 letras en ensamblador PIC18 para limpiar (poner a 0) el bit INT0IF en el registro INTCON dentro de la ISR.',
-            codigoBase: "________ INTCON, INT0IF\n; Código de atención a emergencia\nRETFIE",
-            respuestaRegex: /bcf/i,
-            retro: 'BCF (Bit Clear File) coloca a 0 lógico el bit especificado dentro del registro FILE indicado, sin alterar los demás bits. Es la instrucción obligatoria para limpiar banderas de interrupción en la arquitectura PIC. No limpiar INT0IF es uno de los errores más comunes y peligrosos en firmware de seguridad: la ISR se ejecuta en bucle infinito, el watchdog timer puede no alcanzar a actuar, y el sistema queda en estado indefinido.'
+            contexto: 'Caso 9: Escalado de Frecuencias (Control de Drones). Usted requiere que un lazo de control se ejecute cada 1ms exacto. Dado un reloj de instrucción muy rápido, configurar el Timer0 a 1:1 causaría desbordamientos casi instantáneos que no alcanzan el milisegundo deseado.',
+            texto: 'Para dividir la frecuencia del reloj (hacer que el Timer cuente más lento respecto a los ciclos de instrucción reales), usted debe configurar el módulo periférico interno llamado... (escriba el término técnico correcto en inglés que significa pre-escalador).',
+            codigoBase: "Configurar el ________ = 1:8",
+            respuestaRegex: /prescaler/i,
+            retro: 'El Prescaler es un circuito divisor de frecuencia por hardware integrado en el Timer. Permite "ralentizar" la señal de conteo para alcanzar temporizaciones mucho más largas con registros de 8 o 16 bits limitados.'
         },
         {
             id: 'q10', nivel: 3, tipo: 'codigo', pts: 5,
-            contexto: 'Caso 10: Arquitectura de firmware multi-interrupción para planta piloto de automatización. El PIC18F4550 de la planta atiende simultáneamente: sensores de nivel por INT0 (Alta Prioridad, vector 0x0008) y control de temperatura por Timer2 (Baja Prioridad, vector 0x0018). El ingeniero de firmware debe colocar el código de salto a la ISR de nivel crítico exactamente en la dirección de hardware que el procesador consulta al detectar la interrupción, de lo contrario el CPU salta a una dirección errónea con instrucciones desconocidas y el PIC entra en Reset.',
-            texto: 'Escriba la directiva del compilador ensamblador MPASM que fuerza al enlazador a colocar la siguiente instrucción exactamente en la dirección 0x0008 del mapa de memoria de programa.',
-            codigoBase: "________ 0x0008\nbra ISR_NivelAlto",
-            respuestaRegex: /org/i,
-            retro: 'La directiva ORG (Origin) es una instrucción al enlazador, no al procesador. Le ordena ubicar el código que sigue exactamente en la dirección absoluta especificada en el mapa de programa del PIC18F4550. Los vectores 0x0000 (Reset), 0x0008 (Alta Prioridad) y 0x0018 (Baja Prioridad) son fijos por diseño del silicio y DEBEN estar correctamente poblados; cualquier desviación causa comportamiento catastrófico e impredecible.'
+            contexto: 'Caso 10: Prevención de Deadlocks en ISR. En sus pruebas de campo, al ocurrir una interrupción por el Timer0, la máquina entra en la subrutina ISR, finaliza el evento, ejecuta RETFIE, pero inmediatamente regresa a la rutina de interrupción formando un ciclo infinito (Deadlock).',
+            texto: 'Para romper este ciclo, el programador debe indicarle al hardware que el evento ya fue atendido. Escriba la instrucción mnemotécnica en Ensamblador (3 letras) requerida para LIMPIAR LA BANDERA de desbordamiento (TMR0IF) antes de salir.',
+            codigoBase: "________ INTCON, TMR0IF\nRETFIE",
+            respuestaRegex: /bcf/i,
+            retro: 'Si no limpia la bandera manualmente con BCF (Bit Clear File) por software, el microcontrolador creerá inmediatamente después del RETFIE que un "nuevo" evento requiere atención, ciclando infinitamente en el vector de interrupción.'
         }
     ];
 
@@ -318,7 +317,7 @@ const app = (function() {
 
             clearInterval(state.seguridad.intervaloTimer);
             let score = 0;
-            let maxScore = 50;
+            let maxScore = 50; // ESCALA REAL 50 PUNTOS
             let stepGrade = { funcionalidad: [], calidad: [], eficiencia: [] };
 
             state.preguntasActivas.forEach(q => {
@@ -372,21 +371,21 @@ const app = (function() {
                     <h3 class="text-2xl font-black text-gray-800 mb-6 flex items-center"><i class="fas fa-clipboard-check text-indigo-500 mr-3"></i> Diagnóstico de Fallos y Áreas de Mejora</h3>
                     <div class="space-y-6">
                         <div class="p-6 border-l-8 border-blue-500 bg-blue-50 rounded-r-xl shadow-sm">
-                            <h4 class="font-black text-blue-900 mb-3 text-lg">NIVEL 1: Memoria y Directivas Críticas</h4>
+                            <h4 class="font-black text-blue-900 mb-3 text-lg">NIVEL 1: Arquitectura Base y Comunicación</h4>
                             <ul class="list-disc pl-6 text-gray-800 font-medium space-y-2">
-                                ${stepGrade.funcionalidad.length > 0 ? stepGrade.funcionalidad.map(r => `<li>${r}</li>`).join('') : '<li class="text-green-700"><i class="fas fa-check-circle mr-2"></i>Dominio absoluto de la directiva volatile y gestión de memoria.</li>'}
+                                ${stepGrade.funcionalidad.length > 0 ? stepGrade.funcionalidad.map(r => `<li>${r}</li>`).join('') : '<li class="text-green-700"><i class="fas fa-check-circle mr-2"></i>Dominio absoluto del Hardware Asíncrono y punteros de serialización.</li>'}
                             </ul>
                         </div>
                         <div class="p-6 border-l-8 border-yellow-500 bg-yellow-50 rounded-r-xl shadow-sm">
-                            <h4 class="font-black text-yellow-900 mb-3 text-lg">NIVEL 2: Análisis de Punteros y Manejo de Interrupciones</h4>
+                            <h4 class="font-black text-yellow-900 mb-3 text-lg">NIVEL 2: Sistemas Críticos y Física HMI</h4>
                             <ul class="list-disc pl-6 text-gray-800 font-medium space-y-2">
-                                ${stepGrade.calidad.length > 0 ? stepGrade.calidad.map(r => `<li>${r}</li>`).join('') : '<li class="text-green-700"><i class="fas fa-check-circle mr-2"></i>Excelente análisis de punteros, prioridades y consecuencias de instrucciones de retorno.</li>'}
+                                ${stepGrade.calidad.length > 0 ? stepGrade.calidad.map(r => `<li>${r}</li>`).join('') : '<li class="text-green-700"><i class="fas fa-check-circle mr-2"></i>Excelente comprensión arquitectónica de Bouncing, Nesting y eficiencia SRAM.</li>'}
                             </ul>
                         </div>
                         <div class="p-6 border-l-8 border-red-500 bg-red-50 rounded-r-xl shadow-sm">
-                            <h4 class="font-black text-red-900 mb-3 text-lg">NIVEL 3: Síntesis de Código (Operadores, Directivas y Ensamblador)</h4>
+                            <h4 class="font-black text-red-900 mb-3 text-lg">NIVEL 3: Síntesis de Código Crítico</h4>
                             <ul class="list-disc pl-6 text-gray-800 font-medium space-y-2">
-                                ${stepGrade.eficiencia.length > 0 ? stepGrade.eficiencia.map(r => `<li>${r}</li>`).join('') : '<li class="text-green-700"><i class="fas fa-check-circle mr-2"></i>Capacidad magistral para escribir operadores compuestos y ensamblador directo.</li>'}
+                                ${stepGrade.eficiencia.length > 0 ? stepGrade.eficiencia.map(r => `<li>${r}</li>`).join('') : '<li class="text-green-700"><i class="fas fa-check-circle mr-2"></i>Capacidad magistral para evitar Deadlocks y gestionar operadores compuestos directos.</li>'}
                             </ul>
                         </div>
                     </div>
