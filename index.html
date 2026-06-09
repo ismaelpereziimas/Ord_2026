@@ -234,16 +234,16 @@ const app = (function() {
         },
         {
             id: 'q12', nivel: 1, tipo: 'radio', pts: 2.5,
-            contexto: 'C Embebido Caso 12: Arquitectura del Programa. Un estudiante programa el hardware_init(), ejecuta lógica de control y finaliza el main con un return 0.',
-            texto: '¿Por qué omitir el bucle infinito (Ej. while(1)) es un error grave en un microcontrolador?',
+            contexto: 'C Embebido Caso 12: Arquitectura del Programa. Un alumno te pide revisar el siguiente código que escribió para hacer parpadear un LED:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">int main(void) {<br>&nbsp;&nbsp;hardware_init();<br>&nbsp;&nbsp;LED_TOG();<br>&nbsp;&nbsp;_delay_ms(500);<br>&nbsp;&nbsp;return 0;<br>}</code>',
+            texto: '¿Cuál es el error arquitectónico crítico en este programa embebido?',
             opciones: [
-                'Porque el compilador XC8 marcará un error de sintaxis y no generará el .hex.',
-                'Porque en microcontroladores NO existe sistema operativo que "recoja" el return, produciendo un comportamiento indefinido al salir del main.',
-                'Porque el código se guardará en la RAM en lugar de la Flash.',
-                'Porque el preprocesador borrará las funciones locales al no encontrar un bucle.'
+                'Falta declarar la función main como "void", ya que los compiladores de microcontroladores no soportan devolver números enteros.',
+                'Al omitir el bucle infinito (ej. while(1)), el programa terminará su ejecución y el contador de programa (PC) leerá memoria inválida, causando un comportamiento indefinido.',
+                'El código se ejecutará perfectamente, haciendo parpadear el LED una sola vez y poniendo automáticamente al CPU en modo de bajo consumo (Sleep).',
+                'El preprocesador marcará un error de sintaxis porque la función _delay_ms() no puede ejecutarse antes del return 0.'
             ],
             correcta: 1,
-            retro: 'Al no existir un sistema operativo (OS), la salida de la función main() provoca que el contador de programa lea secciones de memoria inválidas, colgando el sistema.'
+            retro: 'En microcontroladores NO existe un sistema operativo al cual regresar el "return 0". Si el flujo sale de la función main() por falta de un superloop (while), el microcontrolador seguirá ejecutando direcciones de memoria vacías hasta colapsar.'
         },
         {
             id: 'q13', nivel: 2, tipo: 'radio', pts: 2.5,
@@ -259,30 +259,32 @@ const app = (function() {
             retro: 'Usar un puntero (int *temp) y desreferenciarlo con paréntesis (*temp) garantiza que escribamos en la dirección de memoria original de forma segura y sin conflictos de precedencia.'
         },
         {
+     {
             id: 'q14', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: 'C Embebido Caso 14: Punto Flotante vs. Enteros. Se está diseñando un filtro digital. Una versión usa variables "float" y la otra usa enteros "int" escalados.',
-            texto: 'De acuerdo con las buenas prácticas, ¿por qué en MCUs básicos se debe preferir siempre la aritmética entera sobre los float/double?',
+            contexto: 'C Embebido Caso: Code Review - Memoria y Alcance (Scope). Tu alumno Mateo quiere que un LED cambie de color (haga una secuencia) cada vez que presiona un botón. Creó una función para contar los clics, pero se frustra porque el contador nunca pasa de 1, sin importar cuántas veces presione el botón. Te muestra este código:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">void actualizar_secuencia() {<br>&nbsp;&nbsp;int contador = 0;<br>&nbsp;&nbsp;if(boton_presionado()) {<br>&nbsp;&nbsp;&nbsp;&nbsp;contador++;<br>&nbsp;&nbsp;}<br>&nbsp;&nbsp;if(contador == 1) prender_rojo();<br>&nbsp;&nbsp;if(contador == 2) prender_verde();<br>}</code>',
+            texto: 'Basado en las reglas de alcance de variables (scope) en C, ¿cuál es el error lógico que le causa "amnesia" al programa y cómo se soluciona?',
             opciones: [
-                'Porque los datos flotantes solo existen en C++ y no en C estándar.',
-                'Porque los float corrompen el Watchdog Timer provocando reinicios.',
-                'Porque operaciones como float y double son computacionalmente costosas (lentas) en microcontroladores sin Unidad de Punto Flotante (FPU) de hardware.',
-                'Porque la memoria EEPROM no puede almacenar números decimales.'
+                'El microcontrolador reinicia las variables enteras en cada ciclo del while(1). La solución es usar variables de tipo float.',
+                'La variable "contador" es local. Nace y muere dentro de la función, por lo que se reinicia a 0 en cada llamada. La solución es declararla como Global (fuera de la función) o usar el modificador "static".',
+                'Falta un bucle for() dentro de la función para sumar los clics. El if() solo se ejecuta una vez por programa.',
+                'El caso "prender_verde()" es ignorado porque el hardware restringe el uso de condicionales múltiples sin un "else".'
             ],
-            correcta: 2,
-            retro: 'Al carecer de FPU hardware, el compilador debe simular las matemáticas flotantes usando complejas rutinas de software, lo que devora memoria ROM y ciclos de reloj.'
+            correcta: 1,
+            retro: 'Las variables locales (declaradas dentro de una función) se destruyen al salir de ella. Al volver a llamar a "actualizar_secuencia()", la variable se crea de nuevo con valor 0. Para que un contador "recuerde" su valor entre ciclos, debe ser global o estático (static).'
         },
         {
-            id: 'q15', nivel: 2, tipo: 'radio', pts: 2.5,
-            contexto: 'C Embebido Caso 15: Arreglos y Seguridad. Se declara un buffer: char mensaje[10];. Posteriormente, un lazo for inserta 15 caracteres en este arreglo.',
-            texto: 'Dado que C no verifica límites nativamente, ¿cuál es la consecuencia técnica de este "Array Overflow" en un microcontrolador?',
+           id: 'q15', nivel: 2, tipo: 'radio', pts: 2.5,
+            contexto: 'C Embebido Caso 15: Code Review - Corrupción de Memoria. Tu alumno Iván está armando un datalogger para guardar lecturas analógicas. Te busca desesperado y te manda mensajes por whats a la 1 am porque, al correr el programa, el microcontrolador hace cosas raras: otras variables cambian sus valores "mágicamente" o el sistema se cuelga. Te muestra este fragmento:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">uint16_t lecturas[5];<br><br>void actualizar_sensores() {<br>&nbsp;&nbsp;for(int i = 1; i <= 5; i++) {<br>&nbsp;&nbsp;&nbsp;&nbsp;lecturas[i] = analogRead(A0);<br>&nbsp;&nbsp;}<br>}</code>',
+            texto: 'Basado en las reglas de memoria de C, ¿cuál es el error técnico que cometió Iván y por qué causa ese comportamiento "curioso"?',
             opciones: [
-                'El compilador lo detecta automáticamente y detiene el flasheo del PIC.',
-                'El firmware se adapta y mueve la variable a la memoria Flash (ROM).',
-                'Se corrompe la memoria RAM silenciosamente, sobrescribiendo variables adyacentes y causando fallos catastróficos difíciles de rastrear.',
-                'El programa lanza una excepción en el monitor serie y se pausa de manera segura.'
+                'En C, los arreglos comienzan en el índice 0. Al iterar hasta "i <= 5", Iván intenta escribir en "lecturas[5]", desbordando la memoria reservada (Array Overflow) y sobrescribiendo silenciosamente variables adyacentes en la SRAM.',
+                'La función analogRead() devuelve un valor flotante (float). Al guardarlo en un arreglo tipo uint16_t, el hardware genera una excepción de truncamiento de datos y reinicia el procesador.',
+                'El lazo for() es demasiado rápido para el ADC. El compilador asume que es un bucle bloqueante, provocando que el Watchdog Timer detecte una anomalía y reinicie el sistema.',
+                'Iván olvidó inicializar el arreglo utilizando malloc() dentro de la función, por lo que el sistema escribe en una región protegida de la memoria Flash.'
             ],
-            correcta: 2,
-            retro: 'En C embebido no hay protección de memoria. Un desbordamiento escribe directamente sobre las posiciones de RAM contiguas, alterando otras variables críticas o el registro de retorno (Stack).'
+            correcta: 0,
+            retro: 'Un arreglo declarado como lecturas[5] solo tiene posiciones del 0 al 4. Acceder al índice 5 significa escribir fuera de los límites del arreglo. En C embebido no hay protección de memoria, por lo que este desbordamiento altera variables vecinas sin generar errores de compilación.'
+    
         },
         {
             id: 'q16', nivel: 3, tipo: 'codigo', pts: 2.5,
