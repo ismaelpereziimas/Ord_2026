@@ -261,7 +261,7 @@ const app = (function() {
             retro: `Las variables locales (declaradas dentro de una función) se destruyen al salir de ella. Al volver a llamar a "actualizar_secuencia()", la variable se crea de nuevo con valor 0. Para que un contador "recuerde" su valor entre ciclos, debe ser global o estático (static).`
         },
         {
-          {
+          
             id: 'q14', nivel: 2, tipo: 'radio', pts: 2.5,
             contexto: `C Embebido Caso 14: Code Review. Tu alumna Sofía está programando un sistema de seguridad industrial. Quiere que un LED parpadee constantemente mientras el sistema vigila un sensor de gas. Te pide ayuda porque, al inyectar gas de prueba, la alarma tarda hasta 1 segundo entero en reaccionar. Su código es el siguiente:<br><br><code class="bg-gray-800 text-green-400 p-3 rounded-lg block mt-2 mb-2 font-mono text-sm border-l-4 border-indigo-500 shadow-inner">void loop() {<br>&nbsp;&nbsp;PORTB ^= (1 << PIN_LED); // Toggle LED<br>&nbsp;&nbsp;_delay_ms(1000);<br>&nbsp;&nbsp;if(leer_gas() > NIVEL_PELIGRO) { activar_valvula(); }<br>}</code>`,
             texto: `¿Por qué esta estructura lógica es un peligro para un sistema en "tiempo real" y cómo debe solucionarse profesionalmente?`,
